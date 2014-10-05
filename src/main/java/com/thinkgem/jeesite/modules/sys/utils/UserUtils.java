@@ -5,9 +5,12 @@
  */
 package com.thinkgem.jeesite.modules.sys.utils;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.UnavailableSecurityManagerException;
@@ -18,8 +21,10 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.thinkgem.jeesite.common.service.BaseService;
+import com.thinkgem.jeesite.common.utils.Reflections;
 import com.thinkgem.jeesite.common.utils.SpringContextHolder;
 import com.thinkgem.jeesite.modules.sys.dao.AreaDao;
 import com.thinkgem.jeesite.modules.sys.dao.MenuDao;
@@ -31,7 +36,7 @@ import com.thinkgem.jeesite.modules.sys.entity.Menu;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.Role;
 import com.thinkgem.jeesite.modules.sys.entity.User;
-import com.thinkgem.jeesite.modules.sys.security.SystemAuthorizingRealm.Principal;
+import com.thinkgem.jeesite.modules.sys.security.Principal;
 
 /**
  * 用户工具类
@@ -47,6 +52,8 @@ public class UserUtils extends BaseService {
 	private static OfficeDao officeDao = SpringContextHolder.getBean(OfficeDao.class);
 
 	public static final String CACHE_USER = "user";
+	
+	public static final String CACHE_USER_LIST = "userList";
 	public static final String CACHE_ROLE_LIST = "roleList";
 	public static final String CACHE_MENU_LIST = "menuList";
 	public static final String CACHE_AREA_LIST = "areaList";
@@ -106,6 +113,15 @@ public class UserUtils extends BaseService {
 		return list;
 	}
 	
+	public static List<User> getUserList(){
+		@SuppressWarnings("unchecked")
+		DetachedCriteria dc = userDao.createDetachedCriteria();
+		List<User> list = userDao.find(dc);
+		return list;
+	}	
+	
+
+	
 	public static List<Menu> getMenuList(){
 		@SuppressWarnings("unchecked")
 		List<Menu> menuList = (List<Menu>)getCache(CACHE_MENU_LIST);
@@ -156,7 +172,85 @@ public class UserUtils extends BaseService {
 		return officeList;
 	}
 	
+	public static List<Office> getOfficeList2(){
+		@SuppressWarnings("unchecked")
+		List<Office> officeList = (List<Office>)getCache(CACHE_OFFICE_LIST);
+		if (officeList == null){
 
+			DetachedCriteria dc = officeDao.createDetachedCriteria();
+
+			dc.add(Restrictions.eq("delFlag", Office.DEL_FLAG_NORMAL));
+			dc.addOrder(Order.asc("code"));
+			officeList = officeDao.find(dc);
+			putCache(CACHE_OFFICE_LIST, officeList);
+		}
+		return officeList;
+	}
+	
+	public static List<Office> findProCompanyList(){
+		 List<Office> newList = Lists.newArrayList();
+		 List<Office> ls = getOfficeList();
+		 for(Office o:ls){
+			 if("1".equals(o.getSort())) newList.add(o);
+		 }
+		 return newList;
+	}	
+	
+	public static List<Office> findProCompanyList2(String userName){
+		 List<Office> newList = Lists.newArrayList();
+		 List<Office> ls = getOfficeList();
+		 for(Office o:ls){
+			 if("1".equals(o.getSort())) newList.add(o);
+		 }
+		 return newList;
+	}	
+	
+	public static List<Office> findCompanyListByProCompany(String proCompanyId){
+		 List<Office> newList = Lists.newArrayList();
+		 List<Office> ls = getOfficeList();
+//		 System.out.println(">>>>>>>>>>>>>>>>>>>> proCompanyId >>>>>>>>>>>>>>>>>>>>>>>>"+ proCompanyId);
+		 for(Office o:ls){
+//			 String id = o.getId();
+			
+			 String parentIds = o.getParentIds();
+			
+//			  System.out.println(">>>>>>>>>>>>>>>>>>>>  o.getParentIds() >>>>>>>>>>>>>>>>>>>>>>>>"+   StringUtils.indexOf(parentIds, proCompanyId));
+			 if(StringUtils.indexOf(parentIds, proCompanyId)>-1){
+//				 System.out.println(">>>>>>>>>>>>>>>>>>>>  o.getParentIds() >>>>>>>>>>>>>>>>>>>>>>>>"+  o.getParentIds());
+				 newList.add(o);
+			 }
+		 }
+		 return newList;
+	}
+	
+	
+	public static List<User> findUserByCompany(List<User> userList,String companyId){
+		List<User> list = Lists.newArrayList();
+		 for(User u:userList){
+			 String cId = u.getCompany().getId();
+			 if(cId.equals(companyId)){
+				 list.add(u);
+			 }
+		 }
+		 
+		 return list;
+	}
+	
+	public static List<Map<String, Object>> findUserListMap(List<User> userList,String companyId){
+		List<Map<String, Object>> mapList = Lists.newArrayList();
+		List<User> list = findUserByCompany(userList, companyId);
+		for(User u:list){
+			Map<String, Object> map = Maps.newHashMap();
+			map.put("id", u.getId());
+			map.put("name", u.getName());		
+			mapList.add(map);			
+		}
+		return mapList;
+	}
+	
+	
+	
+	
 	public static User getUserById(String id){
 		if(StringUtils.isNotBlank(id)) {
 			return userDao.get(id);
@@ -197,5 +291,7 @@ public class UserUtils extends BaseService {
 		}
 		return map;
 	}
+	
+	
 	
 }

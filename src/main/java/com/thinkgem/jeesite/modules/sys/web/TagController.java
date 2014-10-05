@@ -33,7 +33,10 @@ public class TagController extends BaseController {
 		model.addAttribute("extId", request.getParameter("extId")); // 排除的编号ID
 		model.addAttribute("checked", request.getParameter("checked")); // 是否可复选
 		model.addAttribute("selectIds", request.getParameter("selectIds")); // 指定默认选中的ID
-		model.addAttribute("module", request.getParameter("module"));	// 过滤栏目模型（仅针对CMS的Category树）
+		model.addAttribute("nodesLevel", request.getParameter("nodesLevel"));	// 菜单展开层数
+		model.addAttribute("url", request.getParameter("url")); 	// 树结构数据URL
+		model.addAttribute("proCompanyId", request.getParameter("proCompanyId")); 	// 树结构数据URL
+		
 		return "modules/sys/tagTreeselect";
 	}
 	

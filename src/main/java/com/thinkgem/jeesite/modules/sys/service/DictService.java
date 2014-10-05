@@ -21,6 +21,8 @@ import com.thinkgem.jeesite.common.utils.CacheUtils;
 import com.thinkgem.jeesite.modules.sys.dao.DictDao;
 import com.thinkgem.jeesite.modules.sys.dao.MyBatisDictDao;
 import com.thinkgem.jeesite.modules.sys.entity.Dict;
+import com.thinkgem.jeesite.modules.sys.entity.Office;
+import com.thinkgem.jeesite.modules.sys.entity.User;
 import com.thinkgem.jeesite.modules.sys.utils.DictUtils;
 
 /**
@@ -53,12 +55,16 @@ public class DictService extends BaseService {
 //		return page;
 		// Hibernate 查询
 		DetachedCriteria dc = dictDao.createDetachedCriteria();
-		if (StringUtils.isNotEmpty(dict.getType())){
-			dc.add(Restrictions.eq("type", dict.getType()));
-		}
-		if (StringUtils.isNotEmpty(dict.getDescription())){
-			dc.add(Restrictions.like("description", "%"+dict.getDescription()+"%"));
-		}
+
+		
+			if (StringUtils.isNotEmpty(dict.getType())){
+				dc.add(Restrictions.eq("type", dict.getType()));
+			}
+			if (StringUtils.isNotEmpty(dict.getDescription())){
+				dc.add(Restrictions.like("description", "%"+dict.getDescription()+"%"));
+			}
+			
+		
 		dc.add(Restrictions.eq(Dict.FIELD_DEL_FLAG, Dict.DEL_FLAG_NORMAL));
 		dc.addOrder(Order.asc("type")).addOrder(Order.asc("sort")).addOrder(Order.desc("id"));
 		return dictDao.find(page, dc);
@@ -67,6 +73,14 @@ public class DictService extends BaseService {
 	public List<String> findTypeList(){
 		return dictDao.findTypeList();
 	}
+	
+	public List<Dict> findDescGroupByDescriptionList(){
+		return dictDao.findDescGroupByDescriptionList();
+	}
+	
+	
+
+	
 	
 	@Transactional(readOnly = false)
 	public void save(Dict dict) {

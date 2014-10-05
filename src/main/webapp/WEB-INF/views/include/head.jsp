@@ -6,10 +6,14 @@
 <link href="${ctxStatic}/jquery-validation/1.11.1/jquery.validate.min.css" type="text/css" rel="stylesheet" />
 <script src="${ctxStatic}/jquery-validation/1.11.1/jquery.validate.min.js" type="text/javascript"></script>
 <script src="${ctxStatic}/jquery-validation/1.11.1/jquery.validate.method.min.js" type="text/javascript"></script>
+<script src="${ctxStatic}/jquery_chained/0.9.10/jquery.chained.js?v=0.9.10" type="text/javascript"></script>
+<script src="${ctxStatic}/jquery_chained/0.9.10/jquery.chained.remote.js?v=0.9.10" type="text/javascript"></script>
+
 <link href="${ctxStatic}/bootstrap/2.3.1/css_${not empty cookie.theme.value ? cookie.theme.value:'default'}/bootstrap.min.css" type="text/css" rel="stylesheet" />
 <script src="${ctxStatic}/bootstrap/2.3.1/js/bootstrap.min.js" type="text/javascript"></script>
 <!--[if lte IE 6]><link href="${ctxStatic}/bootstrap/bsie/css/bootstrap-ie6.min.css" type="text/css" rel="stylesheet" />
 <script src="${ctxStatic}/bootstrap/bsie/js/bootstrap-ie.min.js" type="text/javascript"></script><![endif]-->
+
 <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
 <!--[if lt IE 9]> <script src="${ctxStatic}/common/html5.js"></script><![endif]-->
 <script src="${ctxStatic}/My97DatePicker/WdatePicker.js" type="text/javascript"></script>

@@ -1,0 +1,1 @@
+mysqldump -uroot -proot --default-character-set=gbk jeesite > jeesite.sql

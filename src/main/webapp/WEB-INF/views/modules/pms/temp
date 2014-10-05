@@ -1,0 +1,202 @@
+HQL运算符
+	
+
+QBC运算符
+	
+
+含义
+
+=
+	
+
+Restrictions.eq()
+	
+
+等于equal
+
+<> 
+	
+
+Restrictions.ne()
+	
+
+不等于not equal
+
+> 
+	
+
+Restrictions.gt()
+	
+
+大于greater than
+
+>=
+	
+
+Restrictions.ge()
+	
+
+大于等于greater than or equal
+
+< 
+	
+
+Restrictions.lt()
+	
+
+小于less than
+
+<=
+	
+
+Restrictions.le()
+	
+
+小于等于less than or equal
+
+is null
+	
+
+Restrictions.isnull()
+	
+
+等于空值
+
+is not null
+	
+
+Restrictions.isNotNull()
+	
+
+非空值
+
+like
+	
+
+Restrictions.like()
+	
+
+字符串模式匹配
+
+and
+	
+
+Restrictions.and()
+	
+
+逻辑与
+
+and
+	
+
+Restrictions.conjunction()
+	
+
+逻辑与
+
+or
+	
+
+Restrictions.or()
+	
+
+逻辑或
+
+or
+	
+
+Restrictions.disjunction()
+	
+
+逻辑或
+
+not
+	
+
+Restrictions.not()
+	
+
+逻辑非
+
+in(列表)
+	
+
+Restrictions.in()
+	
+
+等于列表中的某一个值
+
+not in(列表)
+	
+
+Restrictions.not(Restrictions.in())
+	
+
+不等于列表中任意一个值
+
+between x and y
+	
+
+Restrictions.between()
+	
+
+闭区间xy中的任意值
+
+not between x and y
+	
+
+Restrictions.not(Restrictions..between())
+	
+
+小于值X或者大于值y
+		
+		
+		
+		
+		
+		
+		
+		
+			function resultFormatResult(medata) {
+				 alert(medata)
+		        return medata.text;
+		    }
+		
+		    function resultFormatSelection(medata) {
+		   		 alert(medata)
+		        return medata.id;
+		    }	
+		    
+		    function createSearchChoice(term, data) {
+		        alert(term)
+		        alert(data)
+				if ($(data).filter(function() { return this.text.localeCompare(term)===0; }).length===0) {return {id:term, text:term};}
+		    }	
+		    	
+			
+			function show() {
+                var e=$("<div style='background-color:yellow;'>change fired</div>");
+                $("#devices").append(e);
+                e.animate({opacity:0}, 1000, 'linear', function() { e.remove(); });
+            };
+           $("#devices").bind("change", show);
+		   $('#devices').select2({
+	            multiple:true,
+	            ajax: {
+	                url: "${ctx}/pms/device/devicesjson?model=house&houserId=1",
+	                dataType: 'json',
+	                data: function (term, page) {
+	                    return {
+	                        q: term,
+	                        page_limit: 5
+	                    };
+	                },
+	                createSearchChoice:createSearchChoice,
+	                results: function (data, page) { return { results: data.results };},
+	                multiple: true,
+	                formatResult: resultFormatResult, 
+	   				formatSelection: resultFormatSelection,  // omitted for brevity, see the source of this page
+	   				dropdownCssClass: "bigdrop", // apply css that makes the dropdown taller
+	   				escapeMarkup: function (m) { return m; } 
+	            }
+	       	 });

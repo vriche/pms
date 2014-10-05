@@ -21,8 +21,14 @@
 	<form:form id="searchForm" modelAttribute="dict" action="${ctx}/sys/dict/" method="post" class="breadcrumb form-search">
 		<input id="pageNo" name="pageNo" type="hidden" value="${page.pageNo}"/>
 		<input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
-		<label>类型：</label><form:select id="type" path="type" class="input-small"><form:option value="" label=""/><form:options items="${typeList}" htmlEscape="false"/></form:select>
-		&nbsp;&nbsp;<label>描述 ：</label><form:input path="description" htmlEscape="false" maxlength="50" class="input-small"/>
+		
+		<label>描述：</label>
+		<form:select id="description" path="type"  class="text medium">
+					<form:option value="" label="类型"/>
+					<form:options items="${descList}" itemLabel="description" itemValue="type" htmlEscape="false" />
+		</form:select>&nbsp;&nbsp;
+
+	
 		&nbsp;<input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/>
 	</form:form>
 	<tags:message content="${message}"/>
@@ -33,7 +39,8 @@
 			<tr>
 				<td>${dict.value}</td>
 				<td><a href="${ctx}/sys/dict/form?id=${dict.id}">${dict.label}</a></td>
-				<td><a href="javascript:" onclick="$('#type').val('${dict.type}');$('#searchForm').submit();return false;">${dict.type}</a></td>
+				<td>${dict.type}</td>
+				
 				<td>${dict.description}</td>
 				<td>${dict.sort}</td>
 				<shiro:hasPermission name="sys:dict:edit"><td>

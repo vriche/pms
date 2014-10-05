@@ -99,4 +99,13 @@
     <example>${fnc:getLinkList(siteId, categoryId, number, param)}</example>  
   </function>
   
+   <function>
+    <description>获取物业公司</description>
+    <name>getProCompanyList</name>
+    <function-class>com.thinkgem.jeesite.modules.sys.utils.UserUtils</function-class>
+    <function-signature>java.util.List findProCompanyList2(java.lang.String)</function-signature>
+    <example>${fnc:getProCompanyList(userName)}</example>  
+  </function> 
+  
+  
 </taglib>

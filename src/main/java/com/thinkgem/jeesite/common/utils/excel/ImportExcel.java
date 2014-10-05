@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -42,6 +43,9 @@ import com.thinkgem.jeesite.modules.sys.utils.DictUtils;
 public class ImportExcel {
 	
 	private static Logger log = LoggerFactory.getLogger(ImportExcel.class);
+	
+	
+	private boolean isNewExcel =  com.thinkgem.jeesite.common.config.Global.getOfficeVersion();
 			
 	/**
 	 * 工作薄对象
@@ -320,7 +324,11 @@ public class ImportExcel {
 							val = Float.valueOf(val.toString());
 						}else if (valType == Date.class){
 							val = DateUtil.getJavaDate((Double)val);
-						}else{
+						}
+						else if (valType == BigDecimal.class){
+							val = BigDecimal.valueOf(Double.valueOf(val.toString()));
+						}
+						else{
 							if (ef.fieldType() != Class.class){
 								val = ef.fieldType().getMethod("getValue", String.class).invoke(null, val.toString());
 							}else{

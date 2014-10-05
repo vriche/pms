@@ -19,6 +19,9 @@
 <%@ attribute name="disabled" type="java.lang.String" required="false" description="是否限制选择，如果限制，设置为disabled"%>
 <%@ attribute name="nodesLevel" type="java.lang.String" required="false" description="菜单展开层数"%>
 <%@ attribute name="nameLevel" type="java.lang.String" required="false" description="返回名称关联级别"%>
+<%@ attribute name="proCompany" type="java.lang.String" required="false" description="返回名称关联级别"%>
+
+
 <div class="input-append">
 	<input id="${id}Id" name="${name}" class="${cssClass}" type="hidden" value="${value}"${disabled eq 'true' ? ' disabled=\'disabled\'' : ''}/>
 	<input id="${id}Name" name="${labelName}" readonly="readonly" type="text" value="${labelValue}" maxlength="50"${disabled eq "true"? " disabled=\"disabled\"":""}"
@@ -30,9 +33,15 @@
 		if ($("#${id}Id").attr("disabled")){
 			return true;
 		}
+		
+
+		
+		
         var nameLevel = ${nameLevel eq null ? "1" : nameLevel};
 		// 正常打开	
-		top.$.jBox.open("iframe:${ctx}/tag/treeselect?url="+encodeURIComponent("${url}")+"&module=${module}&checked=${checked}&extId=${extId}&nodesLevel=${nodesLevel}&selectIds="+$("#${id}Id").val(), "选择${title}", 300, 420, {
+		
+	
+		top.$.jBox.open("iframe:${ctx}/tag/treeselect?url="+encodeURIComponent("${url}")+"&module=${module}&checked=${checked}&extId=${extId}&nodesLevel=${nodesLevel}&selectIds="+$("#${id}Id").val()+"&proCompanyId="+$("#${proCompany}").val(), "选择${title}", 300, 420, {
 			buttons:{"确定":"ok", ${allowClear?"\"清除\":\"clear\", ":""}"关闭":true}, submit:function(v, h, f){
 				if (v=="ok"){
 					var tree = h.find("iframe")[0].contentWindow.tree;//h.find("iframe").contents();

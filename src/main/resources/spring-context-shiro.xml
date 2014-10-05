@@ -32,11 +32,30 @@
 	</bean>
 	
 	<!-- 定义 Shiro 主要业务对象 -->
-	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
-		<!-- <property name="sessionManager" ref="sessionManager" /> -->
+	<!--   bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
 		<property name="realm" ref="systemAuthorizingRealm" />
 		<property name="cacheManager" ref="shiroCacheManager" />
-	</bean>
+	</bean -->
+	
+	
+	 
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<!-- <property name="sessionManager" ref="sessionManager" /> -->
+		<property name="realms">
+            <list>
+                <ref bean="systemAuthorizingRealm"/>
+                <ref bean="phoneAuthorizingRealm"/>
+            </list>
+        </property> 
+         <property name="cacheManager" ref="shiroCacheManager" />
+	</bean>	
+	
+	
+	
+
+	
+	
+	
 	<!-- 
 	<bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">  
 	    <property name="globalSessionTimeout" value="3600000" /> 

@@ -18,7 +18,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
-import com.thinkgem.jeesite.modules.cms.utils.CmsUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.DynamicInsert;
@@ -34,6 +33,7 @@ import org.hibernate.validator.constraints.Length;
 
 import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.IdEntity;
+import com.thinkgem.jeesite.modules.cms.utils.CmsUtils;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 
 /**

@@ -84,6 +84,11 @@ public class SystemService extends BaseService  {
 					Restrictions.like("office.parentIds", "%,"+user.getOffice().getId()+",%")
 					));
 		}
+		
+		
+		
+	
+		
 		// 如果不是超级管理员，则不显示超级管理员用户
 		if (!currentUser.isAdmin()){
 			dc.add(Restrictions.ne("id", "1")); 
@@ -111,14 +116,26 @@ public class SystemService extends BaseService  {
 	public User getUserByLoginName(String loginName) {
 		return userDao.findByLoginName(loginName);
 	}
+	
+	public User getUserByPhone(String phone) {
+		return userDao.findByPhone(phone);
+	}
 
 	@Transactional(readOnly = false)
 	public void saveUser(User user) {
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>...start 1");
 		userDao.clear();
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>...start 2");
 		userDao.save(user);
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>...start 3"+user.getId());
 		systemRealm.clearAllCachedAuthorizationInfo();
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>...start 4");
 		// 同步到Activiti
-		saveActiviti(user);
+		if(user.isAdmin()){
+			saveActiviti(user);
+			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>...start saveActiviti 5");
+		}
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>...start 6");
 	}
 
 	@Transactional(readOnly = false)
@@ -172,6 +189,10 @@ public class SystemService extends BaseService  {
 	
 	public List<Role> findAllRole(){
 		return UserUtils.getRoleList();
+	}
+	
+	public List<User> findAllUser(){
+		return UserUtils.getUserList();
 	}
 	
 	@Transactional(readOnly = false)

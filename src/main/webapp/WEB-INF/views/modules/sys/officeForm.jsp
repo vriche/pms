@@ -59,6 +59,19 @@
 				<form:input path="code" htmlEscape="false" maxlength="50"/>
 			</div>
 		</div>
+		
+		<div class="control-group">
+			<label class="control-label">机构分类:</label>
+			<div class="controls">
+				<form:select path="sort" >
+					<form:option value="" label="请选择"/>
+					<form:options items="${fns:getDictList('sys_office_sort')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
+				</form:select>
+			</div>
+		</div>		
+		
+		
+		
 		<div class="control-group">
 			<label class="control-label">机构类型:</label>
 			<div class="controls">
@@ -73,6 +86,14 @@
 				<form:select path="grade">
 					<form:options items="${fns:getDictList('sys_office_grade')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
 				</form:select>
+			</div>
+		</div>
+		
+		<div class="control-group">
+			<label class="control-label">是否对公:</label>
+			<div class="controls">
+				<form:radiobuttons path="isCharge" items="${fns:getDictList('yes_no')}" itemLabel="label" itemValue="value" htmlEscape="false" class="required"/>
+				<span class="help-inline">是否对公收费</span>
 			</div>
 		</div>
 		<div class="control-group">

@@ -44,6 +44,7 @@ public class ${ClassName}Service extends BaseService {
 	
 	@Transactional(readOnly = false)
 	public void save(${ClassName} ${className}) {
+		${className}Dao.clear();
 		${className}Dao.save(${className});
 	}
 	

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -33,6 +33,7 @@
 		<commons-codec.version>1.8</commons-codec.version>
 		<commons-fileupload.version>1.3</commons-fileupload.version>
 		<commons-beanutils.version>1.8.3</commons-beanutils.version>
+		<commons-collections.version>3.2.1</commons-collections.version>
 		<jackson.version>2.2.1</jackson.version>
 		<xstream.version>1.4.3</xstream.version>
 		<guava.version>14.0.1</guava.version>
@@ -49,7 +50,7 @@
 		<jdk.version>1.6</jdk.version>
 		<tomcat.version>2.1</tomcat.version>
 		<jetty.version>7.6.10.v20130312</jetty.version>
-		<webserver.port>8181</webserver.port>
+		<webserver.port>9090</webserver.port>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<downloadSources>false</downloadSources>
 		
@@ -164,6 +165,7 @@
 		   </snapshots>
 		</repository>
 		
+
 	</repositories>	
 	<pluginRepositories> 
 	
@@ -180,10 +182,23 @@
 			</snapshots>
 		</pluginRepository> -->
 		
+		
+
+
 	</pluginRepositories> 
 	
 	<!-- 依赖项定义 -->
 	<dependencies>
+	
+	   <!--  
+	   <dependency>
+			<groupId>org.zeroturnaround</groupId>
+			<artifactId>jrebel-maven-plugin</artifactId>
+			<version>1.1.5</version>
+		</dependency>
+	-->	
+		
+		
 		<!-- ERMaster begin -->
 		<dependency>
 		    <groupId>org.eclipse</groupId>
@@ -522,6 +537,11 @@
 		
 		<!-- GENERAL UTILS begin -->
 		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>${commons-collections.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>${commons-lang3.version}</version>
@@ -632,6 +652,13 @@
 		    <version>${poi.version}</version>
 		</dependency>
 		
+		<dependency>
+		    <groupId>org.apache.poi</groupId>
+		    <artifactId>ooxml-schemas</artifactId>
+		    <version>1.1</version>
+		</dependency>	
+
+		
 		<!-- image util -->
 		<dependency>
 		    <groupId>com.drewnoakes</groupId>
@@ -691,9 +718,12 @@
         </dependency> -->
 		
 	</dependencies>
+	
+	
 
 	<build>
 		<outputDirectory>${project.basedir}/src/main/webapp/WEB-INF/classes/</outputDirectory>
+		
 		<plugins>
 			<!-- Compiler 插件, 设定JDK版本 -->
 			<plugin>
@@ -782,6 +812,8 @@
 					<webAppConfig>
 						<contextPath>/${project.artifactId}</contextPath>
 					</webAppConfig>
+					<scanIntervalSeconds>0</scanIntervalSeconds>
+					<!-- reload>automatic</reload -->
 					<systemProperties>  
 			            <systemProperty>
 			            	<name>org.mortbay.util.URI.charset</name>
@@ -825,6 +857,27 @@
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>2.5.1</version>
 			</plugin>
+			
+			
+			<!--
+			 <plugin>
+				<groupId>org.zeroturnaround</groupId>
+				<artifactId>jrebel-maven-plugin</artifactId>
+				<version>1.1.5</version>
+				<executions>
+					<execution>
+						<id>generate-rebel-xml</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			  -->	
+			 
+
+					
 		</plugins>
 	</build>
 	
@@ -900,6 +953,10 @@
               				</target>
             			</configuration>
 					</plugin>
+					
+					
+					
+					
 				</plugins>
 			</build>
 		</profile>

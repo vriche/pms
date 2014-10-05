@@ -21,6 +21,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+//import org.apache.poi.ss.SpreadsheetVersion;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Comment;
@@ -55,8 +57,11 @@ public class ExportExcel {
 	/**
 	 * 工作薄对象
 	 */
-	private SXSSFWorkbook wb;
-	
+	private Workbook wb;
+//	private HSSFWorkbook wb;
+//	private SXSSFWorkbook wb2;
+	private boolean isNewExcel =  com.thinkgem.jeesite.common.config.Global.getOfficeVersion();
+
 	/**
 	 * 工作表对象
 	 */
@@ -189,9 +194,23 @@ public class ExportExcel {
 	 * @param headerList 表头列表
 	 */
 	private void initialize(String title, List<String> headerList) {
-		this.wb = new SXSSFWorkbook(500);
-		this.sheet = wb.createSheet("Export");
-		this.styles = createStyles(wb);
+		
+		 if (this.isNewExcel){  
+			 this.wb = new SXSSFWorkbook(500);
+		 }else{
+			 this.wb = new HSSFWorkbook();  
+		 } 
+		 
+		 
+		 this.sheet = wb.createSheet("Export");
+		// 冻结第一行  
+		 this.sheet.createFreezePane( 0, 1, 0, 1 );  
+		 this.sheet.createFreezePane( 0, 2, 0, 2 );  
+		// 冻结第一列   
+//		 this.sheet.createFreezePane( 1, 0, 1, 0 );
+		    
+		 this.styles = createStyles(wb);
+
 		// Create title
 		if (StringUtils.isNotBlank(title)){
 			Row titleRow = sheet.createRow(rownum++);
@@ -341,7 +360,7 @@ public class ExportExcel {
 			} else if (val instanceof Float) {
 				cell.setCellValue((Float) val);
 			} else if (val instanceof Date) {
-				DataFormat format = wb.createDataFormat();
+				 DataFormat format = wb.createDataFormat();
 	            style.setDataFormat(format.getFormat("yyyy-MM-dd"));
 				cell.setCellValue((Date) val);
 			} else {
@@ -405,7 +424,7 @@ public class ExportExcel {
 	 * @param os 输出数据流
 	 */
 	public ExportExcel write(OutputStream os) throws IOException{
-		wb.write(os);
+		 wb.write(os);
 		return this;
 	}
 	
@@ -413,13 +432,25 @@ public class ExportExcel {
 	 * 输出到客户端
 	 * @param fileName 输出文件名
 	 */
+//	public ExportExcel write(HttpServletResponse response, String fileName) throws IOException{
+//		response.reset();
+//        response.setContentType("application/octet-stream; charset=utf-8");// 定义输出类型
+//        response.setHeader("Content-Disposition", "attachment; filename="+Encodes.urlEncode(fileName));
+//		write(response.getOutputStream());
+//		return this;
+//	}
 	public ExportExcel write(HttpServletResponse response, String fileName) throws IOException{
 		response.reset();
-        response.setContentType("application/octet-stream; charset=utf-8");
-        response.setHeader("Content-Disposition", "attachment; filename="+Encodes.urlEncode(fileName));
+		response.setContentType("application/vnd.ms-excel");
+		response.setHeader("Content-disposition","attachment; filename="+new String((fileName).getBytes("gbk"),"iso8859-1"));
 		write(response.getOutputStream());
 		return this;
 	}
+	
+	
+	
+
+	
 	
 	/**
 	 * 输出到文件
@@ -435,7 +466,9 @@ public class ExportExcel {
 	 * 清理临时文件
 	 */
 	public ExportExcel dispose(){
-		wb.dispose();
+//		if (this.isNewExcel){   
+			this.wb = null;
+//		}
 		return this;
 	}
 	

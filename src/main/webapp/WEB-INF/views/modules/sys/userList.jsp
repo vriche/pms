@@ -80,12 +80,20 @@
 			<label>姓&nbsp;&nbsp;&nbsp;名：</label><form:input path="name" htmlEscape="false" maxlength="50" class="input-small"/>
 			&nbsp;<input id="btnSubmit" class="btn btn-primary" type="submit" value="查询" onclick="return page();"/>
 			&nbsp;<input id="btnExport" class="btn btn-primary" type="button" value="导出"/>
-			&nbsp;<input id="btnImport" class="btn btn-primary" type="button" value="导入"/>
+			&nbsp;<input id="btnImport" class="btn btn-primary" type="hidden" value="导入"/>
 		</div>
 	</form:form>
 	<tags:message content="${message}"/>
 	<table id="contentTable" class="table table-striped table-bordered table-condensed">
-		<thead><tr><th>归属公司</th><th>归属部门</th><th class="sort loginName">登录名</th><th class="sort name">姓名</th><th>电话</th><th>手机</th><th>角色</th><shiro:hasPermission name="sys:user:edit"><th>操作</th></shiro:hasPermission></tr></thead>
+		<thead><tr>
+		<th>归属公司</th>
+		<th>归属部门</th>
+		<th class="sort loginName">登录名</th>
+		<th class="sort name">姓名</th>
+		<th>电话</th>
+		<th>手机1</th>
+		<th>手机2</th>
+		<th>角色</th><shiro:hasPermission name="sys:user:edit"><th>操作</th></shiro:hasPermission></tr></thead>
 		<tbody>
 		<c:forEach items="${page.list}" var="user">
 			<tr>
@@ -95,6 +103,7 @@
 				<td>${user.name}</td>
 				<td>${user.phone}</td>
 				<td>${user.mobile}</td>
+				<td>${user.mobile2}</td>
 				<td>${user.roleNames}</td>
 				<shiro:hasPermission name="sys:user:edit"><td>
     				<a href="${ctx}/sys/user/form?id=${user.id}">修改</a>

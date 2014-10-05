@@ -5,6 +5,7 @@
  */
 package com.thinkgem.jeesite.modules.sys.web;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,6 +51,9 @@ public class UserController extends BaseController {
 
 	@Autowired
 	private SystemService systemService;
+	
+	
+	private boolean isNewExcel =  com.thinkgem.jeesite.common.config.Global.getOfficeVersion();
 	
 	@ModelAttribute
 	public User get(@RequestParam(required=false) String id) {
@@ -159,7 +163,12 @@ public class UserController extends BaseController {
     @RequestMapping(value = "export", method=RequestMethod.POST)
     public String exportFile(User user, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes) {
 		try {
-            String fileName = "用户数据"+DateUtils.getDate("yyyyMMddHHmmss")+".xlsx"; 
+			String fileSuffix = isNewExcel?".xlsx":".xls";
+            String fileName = "用户数据"+DateUtils.getDate("yyyyMMddHHmmss")+ fileSuffix; 
+//            String fileName1 = "用户数据"+DateUtils.getDate("yyyyMMddHHmmss")+ fileSuffix; 
+//            String fileName = new String(fileName1.getBytes("GBK"),"ISO8859-1");
+//            response.setHeader("Content-disposition", "attachment; filename=" + fileName);// 设定输出文件头  response.setHeader(arg0, arg1);
+//            response.setContentType("application/msexcel");// 定义输出类型    
     		Page<User> page = systemService.findUser(new Page<User>(request, response, -1), user); 
     		new ExportExcel("用户数据", User.class).setDataList(page.getList()).write(response, fileName).dispose();
     		return null;
@@ -186,6 +195,16 @@ public class UserController extends BaseController {
 				try{
 					if ("true".equals(checkLoginName("", user.getLoginName()))){
 						user.setPassword(SystemService.entryptPassword("123456"));
+						user.setUpdateDate(new Date());
+						Office branch = new Office();
+						branch.setId("2");
+						user.setOffice(branch);
+						if(StringUtils.isBlank(user.getEmail())){
+							user.setEmail(user.getLoginName()+"@vriche.com");
+						}
+						if(StringUtils.isBlank(user.getNo())){
+							user.setNo(user.getLoginName());
+						}
 						BeanValidators.validateWithException(validator, user);
 						systemService.saveUser(user);
 						successNum++;
@@ -218,7 +237,8 @@ public class UserController extends BaseController {
     @RequestMapping(value = "import/template")
     public String importFileTemplate(HttpServletResponse response, RedirectAttributes redirectAttributes) {
 		try {
-            String fileName = "用户数据导入模板.xlsx";
+			String fileSuffix = isNewExcel?".xlsx":".xls";
+            String fileName = "用户数据导入模板"+fileSuffix;
     		List<User> list = Lists.newArrayList(); list.add(UserUtils.getUser());
     		new ExportExcel("用户数据", User.class, 2).setDataList(list).write(response, fileName).dispose();
     		return null;
@@ -280,6 +300,9 @@ public class UserController extends BaseController {
 		model.addAttribute("user", user);
 		return "modules/sys/userModifyPwd";
 	}
+	
+	
+
     
 //	@InitBinder
 //	public void initBinder(WebDataBinder b) {

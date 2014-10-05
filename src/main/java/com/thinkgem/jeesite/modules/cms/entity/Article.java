@@ -19,7 +19,6 @@ import javax.persistence.Transient;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import com.thinkgem.jeesite.modules.cms.utils.CmsUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -39,6 +38,7 @@ import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.IdEntity;
+import com.thinkgem.jeesite.modules.cms.utils.CmsUtils;
 
 /**
  * 文章Entity

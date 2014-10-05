@@ -30,6 +30,9 @@ import org.hibernate.validator.constraints.Length;
 
 import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.IdEntity;
+import com.thinkgem.jeesite.common.utils.excel.annotation.ExcelField;
+import com.thinkgem.jeesite.common.utils.excel.fieldtype.AreaType;
+import com.thinkgem.jeesite.common.utils.excel.fieldtype.UserListType;
 
 /**
  * 机构Entity
@@ -56,13 +59,20 @@ public class Office extends IdEntity<Office> {
 	private String phone; 	// 电话
 	private String fax; 	// 传真
 	private String email; 	// 邮箱
+	private String sort; 	// 机构类型（1：对公；2：个人；）
+	private String isCharge; 	//is_charge  （是否计费）
 	
+	
+
+
+
 	private List<User> userList = Lists.newArrayList();   // 拥有用户列表
 	private List<Office> childList = Lists.newArrayList();// 拥有子机构列表
 
 	public Office(){
 		super();
 	}
+	
 	
 	public Office(String id){
 		this();
@@ -94,6 +104,7 @@ public class Office extends IdEntity<Office> {
 	@JoinColumn(name="area_id")
 	@NotFound(action = NotFoundAction.IGNORE)
 	@NotNull
+	@ExcelField(title="区域", align=2, sort=20, fieldType=AreaType.class)
 	public Area getArea() {
 		return area;
 	}
@@ -103,6 +114,7 @@ public class Office extends IdEntity<Office> {
 	}
 
 	@Length(min=1, max=100)
+	@ExcelField(title="机构名称", align=0, sort=1)
 	public String getName() {
 		return name;
 	}
@@ -111,7 +123,18 @@ public class Office extends IdEntity<Office> {
 		this.name = name;
 	}
 	
+	@Length(min=0, max=100)
+	@ExcelField(title="机构编码", align=2, sort=2)
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+	
 	@Length(min=1, max=1)
+	@ExcelField(title="机构类型", align=2, sort=80, dictType="sys_office_type")
 	public String getType() {
 		return type;
 	}
@@ -121,6 +144,7 @@ public class Office extends IdEntity<Office> {
 	}
 
 	@Length(min=1, max=1)
+	@ExcelField(title="机构等级", align=2, sort=80, dictType="sys_office_grade")
 	public String getGrade() {
 		return grade;
 	}
@@ -130,6 +154,7 @@ public class Office extends IdEntity<Office> {
 	}
 
 	@Length(min=0, max=255)
+	@ExcelField(title="联系地址", align=2, sort=30)
 	public String getAddress() {
 		return address;
 	}
@@ -139,6 +164,7 @@ public class Office extends IdEntity<Office> {
 	}
 
 	@Length(min=0, max=100)
+	@ExcelField(title="邮编", align=2, sort=30)
 	public String getZipCode() {
 		return zipCode;
 	}
@@ -148,6 +174,7 @@ public class Office extends IdEntity<Office> {
 	}
 
 	@Length(min=0, max=100)
+	@ExcelField(title="负责人", align=2, sort=30)
 	public String getMaster() {
 		return master;
 	}
@@ -157,6 +184,7 @@ public class Office extends IdEntity<Office> {
 	}
 
 	@Length(min=0, max=200)
+	@ExcelField(title="电话", align=2, sort=30)
 	public String getPhone() {
 		return phone;
 	}
@@ -166,6 +194,7 @@ public class Office extends IdEntity<Office> {
 	}
 
 	@Length(min=0, max=200)
+	@ExcelField(title="传真", align=2, sort=30)
 	public String getFax() {
 		return fax;
 	}
@@ -175,6 +204,7 @@ public class Office extends IdEntity<Office> {
 	}
 
 	@Length(min=0, max=200)
+	@ExcelField(title="邮件", align=2, sort=30)
 	public String getEmail() {
 		return email;
 	}
@@ -182,21 +212,28 @@ public class Office extends IdEntity<Office> {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-
-	@Length(min=0, max=100)
-	public String getCode() {
-		return code;
+	
+	
+//	@Length(min=1, max=1)
+	@ExcelField(title="机构分类", align=2, sort=80, dictType="sys_office_sort")
+	public String getSort() {
+		return sort;
 	}
 
-	public void setCode(String code) {
-		this.code = code;
+
+	public void setSort(String sort) {
+		this.sort = sort;
 	}
+
+
+
 	
 	@OneToMany(mappedBy = "office", fetch=FetchType.LAZY)
 	@Where(clause="del_flag='"+DEL_FLAG_NORMAL+"'")
 	@OrderBy(value="id") @Fetch(FetchMode.SUBSELECT)
 	@NotFound(action = NotFoundAction.IGNORE)
 	@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+//	@ExcelField(title="拥有用户", align=1, sort=800, fieldType=UserListType.class)
 	public List<User> getUserList() {
 		return userList;
 	}
@@ -217,6 +254,17 @@ public class Office extends IdEntity<Office> {
 	public void setChildList(List<Office> childList) {
 		this.childList = childList;
 	}
+	
+	
+	
+	public String getIsCharge() {
+		return isCharge;
+	}
+
+
+	public void setIsCharge(String isCharge) {
+		this.isCharge = isCharge;
+	}
 
 	@Transient
 	public static void sortList(List<Office> list, List<Office> sourcelist, String parentId){
@@ -230,7 +278,7 @@ public class Office extends IdEntity<Office> {
 					Office child = sourcelist.get(j);
 					if (child.getParent()!=null && child.getParent().getId()!=null
 							&& child.getParent().getId().equals(e.getId())){
-						sortList(list, sourcelist, e.getId());
+						sortList(list, sourcelist, e.getId()); 
 						break;
 					}
 				}

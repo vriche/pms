@@ -19,7 +19,7 @@ public class OfficeType {
 	 * 获取对象值（导入）
 	 */
 	public static Object getValue(String val) {
-		for (Office e : UserUtils.getOfficeList()){
+		for (Office e : UserUtils.getOfficeList2()){
 			if (val.equals(e.getName())){
 				return e;
 			}

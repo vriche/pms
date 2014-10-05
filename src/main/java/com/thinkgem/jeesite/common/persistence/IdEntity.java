@@ -7,11 +7,14 @@ package com.thinkgem.jeesite.common.persistence;
 
 import java.io.Serializable;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
+import javax.persistence.TableGenerator;
 
-import com.thinkgem.jeesite.common.utils.IdGen;
+import com.thinkgem.jeesite.common.utils.excel.annotation.ExcelField;
 
 /**
  * 数据Entity类
@@ -24,18 +27,14 @@ public abstract class IdEntity<T> extends DataEntity<T> implements Serializable 
 	private static final long serialVersionUID = 1L;
 
 	protected String id;		// 编号
-	
+
+
 	public IdEntity() {
 		super();
 	}
 	
-	@PrePersist
-	public void prePersist(){
-		super.prePersist();
-		this.id = IdGen.uuid();
-	}
-
-	@Id
+	 @Id
+     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	public String getId() {
 		return id;
 	}
@@ -43,5 +42,17 @@ public abstract class IdEntity<T> extends DataEntity<T> implements Serializable 
 	public void setId(String id) {
 		this.id = id;
 	}
+	
+	@PrePersist
+	public void prePersist(){
+		super.prePersist();
+//		this.id = IdGen.uuid();
+		this.id = null;
+//		String id = this.getId();
+//		System.out.println(">>>>>>>>>>>>>>>>>>>> id  >>>>>>>>"+id);
+//		this.id = id;
+	}
+
+
 	
 }

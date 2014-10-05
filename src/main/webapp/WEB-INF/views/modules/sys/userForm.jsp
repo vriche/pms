@@ -99,11 +99,19 @@
 			</div>
 		</div>
 		<div class="control-group">
-			<label class="control-label">手机:</label>
+			<label class="control-label">手机1:</label>
 			<div class="controls">
 				<form:input path="mobile" htmlEscape="false" maxlength="100"/>
 			</div>
 		</div>
+		
+		<div class="control-group">
+			<label class="control-label">手机2:</label>
+			<div class="controls">
+				<form:input path="mobile2" htmlEscape="false" maxlength="100"/>
+			</div>
+		</div>		
+		
 		<div class="control-group">
 			<label class="control-label">备注:</label>
 			<div class="controls">

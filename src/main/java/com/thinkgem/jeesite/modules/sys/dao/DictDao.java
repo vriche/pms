@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.thinkgem.jeesite.common.persistence.BaseDao;
 import com.thinkgem.jeesite.common.persistence.Parameter;
 import com.thinkgem.jeesite.modules.sys.entity.Dict;
+import com.thinkgem.jeesite.modules.sys.entity.User;
 
 /**
  * 字典DAO接口
@@ -28,4 +29,13 @@ public class DictDao extends BaseDao<Dict> {
 	public List<String> findTypeList(){
 		return find("select type from Dict where delFlag=:p1 group by type", new Parameter(Dict.DEL_FLAG_NORMAL));
 	}
+	
+//	public List<Dict> findDescGroupByDescriptionList(){
+//		return find("select * from Dict where delFlag=:p1 group by type", new Parameter(Dict.DEL_FLAG_NORMAL));
+//	}
+	
+	public List<Dict> findDescGroupByDescriptionList() {
+		return find("from Dict where delFlag=:p1  group by description", new Parameter(Dict.DEL_FLAG_NORMAL));
+	}
+	
 }

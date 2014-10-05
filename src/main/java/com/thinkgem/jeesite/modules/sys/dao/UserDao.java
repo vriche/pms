@@ -29,7 +29,9 @@ public class UserDao extends BaseDao<User> {
 	public User findByLoginName(String loginName){
 		return getByHql("from User where loginName = :p1 and delFlag = :p2", new Parameter(loginName, User.DEL_FLAG_NORMAL));
 	}
-
+	public User findByPhone(String phone){
+		return getByHql("from User where phone = :p1 and delFlag = :p2", new Parameter(phone, User.DEL_FLAG_NORMAL));
+	}
 	public int updatePasswordById(String newPassword, String id){
 		return update("update User set password=:p1 where id = :p2", new Parameter(newPassword, id));
 	}

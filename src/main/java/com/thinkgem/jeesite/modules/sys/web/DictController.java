@@ -51,7 +51,9 @@ public class DictController extends BaseController {
 	@RequestMapping(value = {"list", ""})
 	public String list(Dict dict, HttpServletRequest request, HttpServletResponse response, Model model) {
 		List<String> typeList = dictService.findTypeList();
+		List<Dict> descList = dictService.findDescGroupByDescriptionList();
 		model.addAttribute("typeList", typeList);
+		model.addAttribute("descList", descList); 
         Page<Dict> page = dictService.find(new Page<Dict>(request, response), dict); 
         model.addAttribute("page", page);
 		return "modules/sys/dictList";

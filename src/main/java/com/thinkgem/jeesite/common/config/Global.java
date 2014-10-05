@@ -5,11 +5,13 @@
  */
 package com.thinkgem.jeesite.common.config;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.springframework.util.Assert;
 
 import com.google.common.collect.Maps;
+import com.thinkgem.jeesite.common.utils.DateUtils;
 import com.thinkgem.jeesite.common.utils.PropertiesLoader;
 
 /**
@@ -18,6 +20,11 @@ import com.thinkgem.jeesite.common.utils.PropertiesLoader;
  * @version 2013-03-23
  */
 public class Global {
+	
+	
+	public static final String PMS_FEES_TYPE_POOL = "2";
+	
+	
 	
 	/**
 	 * 保存全局属性值
@@ -71,6 +78,17 @@ public class Global {
 		String dm = getConfig("demoMode");
 		return "true".equals(dm) || "1".equals(dm);
 	}
+	
+	
+	/**
+	 * 获取管理端根路径
+	 */
+	public static boolean  getOfficeVersion() {
+		// 0 旧版本  1 新版本
+		return  "1".equals(getConfig("officeVersion"));
+	}
+	
+	
 
 	/**
 	 * 获取CKFinder上传文件的根目录
@@ -84,5 +102,15 @@ public class Global {
 		}
 		return dir;
 	}
-	
+	/**
+	 * 获取CKFinder上传文件的根目录
+	 * @return
+	 */
+	public static String getDefStartDateStr() {
+		return getConfig("defStartDate");
+	}
+	public static Date getDefStartDate() {
+		String defStartDate = getConfig("defStartDate");
+		return DateUtils.parseDate(defStartDate);
+	}
 }

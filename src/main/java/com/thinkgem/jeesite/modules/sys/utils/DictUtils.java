@@ -72,4 +72,14 @@ public class DictUtils {
 		return dictList;
 	}
 	
+	public static String  getLable(String type,String id){
+		@SuppressWarnings("unchecked")
+		String name = "";
+		List<Dict> ls = getDictList( type);
+		for(Dict d:ls){
+			if(d.getValue().equals(id)) name = d.getLabel();
+		}
+		return name;
+	}
+	
 }

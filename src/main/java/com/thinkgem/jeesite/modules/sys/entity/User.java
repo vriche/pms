@@ -14,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -37,7 +38,9 @@ import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.IdEntity;
 import com.thinkgem.jeesite.common.utils.Collections3;
 import com.thinkgem.jeesite.common.utils.excel.annotation.ExcelField;
+import com.thinkgem.jeesite.common.utils.excel.fieldtype.OfficeType;
 import com.thinkgem.jeesite.common.utils.excel.fieldtype.RoleListType;
+import com.thinkgem.jeesite.modules.pms.entity.House;
 
 /**
  * 用户Entity
@@ -60,11 +63,32 @@ public class User extends IdEntity<User> {
 	private String email;	// 邮箱
 	private String phone;	// 电话
 	private String mobile;	// 手机
+	private String mobile2;	// 手机
 	private String userType;// 用户类型
 	private String loginIp;	// 最后登陆IP
 	private Date loginDate;	// 最后登陆日期
 	
+	private String paperworkCode;	// 证件号码
+	
+	
+
+
 	private List<Role> roleList = Lists.newArrayList(); // 拥有角色列表
+
+	private List<House> houseList = Lists.newArrayList(); // 拥有费用列表
+	
+	private String houseIds;
+	
+	private String userTypeStr;// 用户类型
+	
+	
+//	private List<Fees> feesList = Lists.newArrayList(); // 拥有费用列表  根据房产查找费用   因为费用是直接跟房产挂钩 一个房产可以拥有多个设备，也包含公摊设备
+
+	
+	
+
+
+
 
 	public User() {
 		super();
@@ -75,12 +99,46 @@ public class User extends IdEntity<User> {
 		this.id = id;
 	}
 	
+	
+	
+	@OneToMany(mappedBy = "owner", fetch=FetchType.LAZY)
+	@Where(clause="del_flag='"+DEL_FLAG_NORMAL+"'")
+	@OrderBy(value="code") @Fetch(FetchMode.SUBSELECT)
+	@NotFound(action = NotFoundAction.IGNORE)
+	@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+	public List<House> getHouseList() {
+		return houseList;
+	}
+
+	public void setHouseList(List<House> houseList) {
+		this.houseList = houseList;
+	}
+	
+	
+
+//	public List<Fees> getFeesList() {
+//		List<Fees> feList = Lists.newArrayList();
+//		for (House house : houseList) {
+//			List<Device> devList = house.getDeviceList();
+//			for (Device device : devList) {
+//				feList.add(device.getFees());
+//			}
+//		}
+//		return feList;
+//	}
+//
+//	public void setFeesList(List<Fees> feesList) {
+//		this.feesList = feesList;
+//	}
+
+
 	@ManyToOne
 	@JoinColumn(name="company_id")
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JsonIgnore
 	@NotNull(message="归属公司不能为空")
-	@ExcelField(title="归属公司", align=2, sort=20)
+//	@ExcelField(title="归属公司", align=2, sort=20,value="Office.id")
+	@ExcelField(title="归属公司", align=2, sort=1, fieldType=OfficeType.class)
 	public Office getCompany() {
 		return company;
 	}
@@ -93,8 +151,8 @@ public class User extends IdEntity<User> {
 	@JoinColumn(name="office_id")
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JsonIgnore
-	@NotNull(message="归属部门不能为空")
-	@ExcelField(title="归属部门", align=2, sort=25)
+//	@NotNull(message="归属部门不能为空")
+	@ExcelField(title="归属部门", align=2, sort=8, fieldType=OfficeType.class)
 	public Office getOffice() {
 		return office;
 	}
@@ -104,7 +162,7 @@ public class User extends IdEntity<User> {
 	}
 
 	@Length(min=1, max=100)
-	@ExcelField(title="登录名", align=2, sort=30)
+	@ExcelField(title="登录名", align=2, sort=2)
 	public String getLoginName() {
 		return loginName;
 	}
@@ -124,13 +182,66 @@ public class User extends IdEntity<User> {
 	}
 
 	@Length(min=1, max=100)
-	@ExcelField(title="姓名", align=2, sort=40)
+	@ExcelField(title="姓名", align=2, sort=3)
 	public String getName() {
 		return name;
 	}
 	
+	
+//	@Length(min=1, max=100)
+	@ExcelField(title="证件号码", align=2, sort=4)
+	public String getPaperworkCode() {
+		return paperworkCode;
+	}
+
+	public void setPaperworkCode(String paperworkCode) {
+		this.paperworkCode = paperworkCode;
+	}
+	
+	
+	@Length(min=0, max=200)
+	@ExcelField(title="电话", align=2, sort=5)
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+    @Length(min=0, max=200)
+	@ExcelField(title="手机", align=2, sort=6)
+	public String getMobile() {
+		return mobile;
+	}
+
+	public void setMobile(String mobile) {
+		this.mobile = mobile;
+	}
+	
+	
+    @Length(min=0, max=200)
+	@ExcelField(title="手机2", align=2, sort=6)
+	public String getMobile2() {
+		return mobile2;
+	}
+
+	public void setMobile2(String mobile2) {
+		this.mobile2 = mobile2;
+	}
+	@Email @Length(min=0, max=200)
+	@ExcelField(title="邮箱", align=1, sort=7)
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+	
+	
 	@Length(min=1, max=100)
-	@ExcelField(title="工号", align=2, sort=45)
+	@ExcelField(title="工号", align=2, sort=9)
 	public String getNo() {
 		return no;
 	}
@@ -143,44 +254,16 @@ public class User extends IdEntity<User> {
 		this.name = name;
 	}
 
-	@Email @Length(min=0, max=200)
-	@ExcelField(title="邮箱", align=1, sort=50)
-	public String getEmail() {
-		return email;
-	}
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+
 	
-	@Length(min=0, max=200)
-	@ExcelField(title="电话", align=2, sort=60)
-	public String getPhone() {
-		return phone;
-	}
-
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-
-    @Length(min=0, max=200)
-	@ExcelField(title="手机", align=2, sort=70)
-	public String getMobile() {
-		return mobile;
-	}
-
-	public void setMobile(String mobile) {
-		this.mobile = mobile;
-	}
-
 	@Transient
-	@ExcelField(title="备注", align=1, sort=900)
+	@ExcelField(title="备注", align=1, sort=13)
 	public String getRemarks() {
 		return remarks;
 	}
 	
 	@Length(min=0, max=100)
-	@ExcelField(title="用户类型", align=2, sort=80, dictType="sys_user_type")
 	public String getUserType() {
 		return userType;
 	}
@@ -190,7 +273,17 @@ public class User extends IdEntity<User> {
 	}
 
 	@Transient
-	@ExcelField(title="创建时间", type=0, align=1, sort=90)
+	@ExcelField(title="用户类型", align=2, sort=10)
+	public String getUserTypeStr() {
+		return userTypeStr;
+	}
+
+	public void setUserTypeStr(String userTypeStr) {
+		this.userTypeStr = userTypeStr;
+	}
+	
+	@Transient
+	@ExcelField(title="创建时间", type=0, align=1, sort=11)
 	public Date getCreateDate() {
 		return createDate;
 	}
@@ -205,7 +298,7 @@ public class User extends IdEntity<User> {
 	}
 
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	@ExcelField(title="最后登录日期", type=1, align=1, sort=110)
+	@ExcelField(title="最后登录日期", type=1, align=1, sort=11)
 	public Date getLoginDate() {
 		return loginDate;
 	}
@@ -213,6 +306,8 @@ public class User extends IdEntity<User> {
 	public void setLoginDate(Date loginDate) {
 		this.loginDate = loginDate;
 	}
+	
+
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "sys_user_role", joinColumns = { @JoinColumn(name = "user_id") }, inverseJoinColumns = { @JoinColumn(name = "role_id") })
@@ -221,7 +316,7 @@ public class User extends IdEntity<User> {
 	@NotFound(action = NotFoundAction.IGNORE)
 	@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 	@JsonIgnore
-	@ExcelField(title="拥有角色", align=1, sort=800, fieldType=RoleListType.class)
+	@ExcelField(title="拥有角色", align=1, sort=12, fieldType=RoleListType.class)
 	public List<Role> getRoleList() {
 		return roleList;
 	}
@@ -250,6 +345,27 @@ public class User extends IdEntity<User> {
 		}
 	}
 	
+	
+//	@Transient
+//	@JsonIgnore
+//	public List<String> getFeesIdList() {
+//		List<String> feesIdList = Lists.newArrayList();
+//		for (Fees fees : feesList) {
+//			feesIdList.add(fees.getId());
+//		}
+//		return feesIdList;
+//	}
+//
+//	@Transient
+//	public void setFeesIdList(List<String> feesIdList) {
+//		feesList = Lists.newArrayList();
+//		for (String feesId : feesIdList) {
+//			Fees fees = new Fees();
+//			fees.setId(feesId);
+//			feesList.add(fees);
+//		}
+//	}
+	
 	/**
 	 * 用户拥有的角色名称字符串, 多个角色名称用','分隔.
 	 */
@@ -267,6 +383,50 @@ public class User extends IdEntity<User> {
 	public static boolean isAdmin(String id){
 		return id != null && id.equals("1");
 	}
+	
+
+	
+	@Transient
+	@JsonIgnore
+	public List<String> getHouseIdList() {
+		List<String> houseIdList = Lists.newArrayList();
+		for (House house : houseList) { 
+			houseIdList.add(house.getId());
+		}
+		return houseIdList;
+	}
+
+	@Transient
+	public void setHouseIdList(List<String> houseIdList) {
+		houseList = Lists.newArrayList();
+		for (String id : houseIdList) {
+			House house = new House();
+			house.setId(id);
+			houseList.add(house);
+		}
+	}
+	
+	@Transient
+	public String getHouseIds() {
+		return houseIds;
+	}
+	@Transient
+	public void setHouseIds(String houseIds) {
+		this.houseIds = houseIds;
+	}
+
+	@Override
+	public String toString() {
+		return "User [company=" + company + ", office=" + office
+				+ ", loginName=" + loginName + ", password=" + password
+				+ ", no=" + no + ", name=" + name + ", email=" + email
+				+ ", phone=" + phone + ", mobile=" + mobile + ", userType="
+				+ userType + ", loginIp=" + loginIp + ", loginDate="
+				+ loginDate + ", paperworkCode=" + paperworkCode
+				+ ", roleList=" + roleList + ", houseList=" + houseList + "]";
+	}
+	
+	
 	
 //	@Override
 //	public String toString() {

@@ -44,3 +44,10 @@ alter table ACT_ID_MEMBERSHIP
     add constraint ACT_FK_MEMB_USER 
     foreign key (USER_ID_) 
     references ACT_ID_USER (ID_);
+    
+    
+/* 
+INSERT INTO jeesite.act_id_group (ID_ ,REV_ ,NAME_ ,TYPE_)
+VALUES ('oa:leave:deptLeaderAudit', '1', '部门领导', NULL), 
+('oa:leave:hrAudit', '1', '人事主管', NULL);
+*/

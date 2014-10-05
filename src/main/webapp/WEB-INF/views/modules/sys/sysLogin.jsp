@@ -46,7 +46,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="${ctx}"><img src="${ctxStatic}/images/logo.png" alt="Jeesite Admin" style="height:40px;"></a>
+          <a class="brand" href="${ctx}"><img src="${ctxStatic}/images/logo1.png" alt="Property Admin System" style="height:40px;"></a>
         </div>
       </div>
     </div>
@@ -59,7 +59,7 @@
 		</div>
         <div id="login-wraper">
             <form id="loginForm"  class="form login-form" action="${ctx}/login" method="post">
-                <legend><span style="color:#08c;">系统登陆</span></legend>
+                <legend><span style="color:#08c;">河南省广电局机关服务中心物业管理收费系统</span></legend>
                 <div class="body">
 					<div class="control-group">
 						<div class="controls">
