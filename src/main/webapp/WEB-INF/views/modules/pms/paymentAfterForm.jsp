@@ -53,7 +53,7 @@
 		<form:hidden path="house.id"/>
 		<form:hidden path="type"/>
 		<form:hidden path="costMoney" value="0"/>
-		<form:hidden path="payemtDetailId"/>
+		<form:hidden path="deviceDetail.id"/>
 		<form:hidden path="recMoneyBak" value="0"/>
 		<form:hidden path="feedName"/>
 

@@ -4,10 +4,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<groupId>com.thinkgem.jeesite</groupId>
-	<artifactId>jeesite</artifactId>
+	<artifactId>pms</artifactId>
 	<version>1.1.0</version>
 	<packaging>war</packaging>
-	<name>JeeSite</name>
+	<name>pms</name>
 	<url>http://thinkgem.github.com/jeesite</url>
     
 	<!-- 项目属性 -->
@@ -131,7 +131,32 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
+
+		<repository>
+			<id>activiti-repos3-jboss</id>
+			<name>Activiti Repository 3</name>
+			<url>http://repository.jboss.com/maven2/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<repository>
+			<id>activiti-repos3-sonatype</id>
+			<name>Activiti Repository 3</name>
+			<url>http://repository.sonatype.org/content/groups/public/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>		
 		
+				
 		<repository> 
 			<id>thinkgem-repos</id> 
 			<name>ThinkGem Repository</name>
@@ -205,11 +230,15 @@
 		    <artifactId>swt</artifactId>
 		    <version>3.3.0-v3346</version>
 		</dependency>
-		<dependency>
+		
+		<!-- dependency>
 			<groupId>org.eclipse</groupId>
 			<artifactId>draw2d</artifactId>
 			<version>3.2.100-v20070529</version>
-		</dependency>
+		</dependency -->
+	
+		
+		
 		<dependency>
 			<groupId>org.eclipse</groupId>
 			<artifactId>jface</artifactId>
@@ -773,6 +802,8 @@
 					</additionalProjectnatures>
 				</configuration>
 			</plugin>
+			
+
 			
 			<!-- tomcat6插件 -->
 			<plugin>

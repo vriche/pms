@@ -19,10 +19,10 @@
 		   $("#unitId").remoteChained("#buildingsId", url2);			
 
 			//var feesAllUrl = '${ctx}/pms/fees/feesjson?model=house&houserId=1';
-			var feesAllUrl = '${ctx}/pms/fees/feesjson';
-			var feesHouseUrl = '${ctx}/pms/fees/feesjson?mode=device&houserId='+ $("#id").val();
-			
-
+//			var feesAllUrl = '${ctx}/pms/fees/feesjson&proCompanyId='+ $("#proCompanyId").val();
+//			var feesHouseUrl = '${ctx}/pms/fees/feesjson?mode=device&houserId='+ $("#id").val() +'&proCompanyId='+ $("#proCompanyId").val();
+			var feesAllUrl = '${ctx}/pms/fees/feesjson?proCompanyId='+ $("#proCompanyId").val();
+			var feesHouseUrl = '${ctx}/pms/fees/feesjson?mode=device&houserId='+ $("#id").val() +'&proCompanyId='+ $("#proCompanyId").val();
 			$.getJSON(feesAllUrl,{model:'house',houserId:$("#id").val()},function(data){
 						$("#devices").select2({
 							createSearchChoice:function(term, data) { if ($(data).filter(function() { return this.text.localeCompare(term)===0; }).length===0) {return {id:term, text:term};} },
@@ -168,7 +168,7 @@
 		</div>
 
 		<div class="control-group">
-			<label class="control-label">编码:</label>
+			<label class="control-label">编号:</label>
 			<div class="controls">
 				<form:input path="code" htmlEscape="false" maxlength="200" class="required"/>
 			</div>
@@ -282,19 +282,26 @@
 		
 		
 		
-		
+		<div class="control-group">
+		<label class="control-label">顺序:</label>
+		<div class="controls">
+			<form:input path="sort" htmlEscape="false" rows="4" maxlength="200" class="text medium;"/>
+		</div>
+		</div>
 		
 				
-		<div class="control-group">
+		<!-- div class="control-group">
 			<label class="control-label">备注:</label>
 			<div class="controls">
 				<form:textarea path="remarks" htmlEscape="false" rows="4" maxlength="200" class="input-xxlarge"/>
 			</div>
-		</div>
+		</div -->
+		
+		
 		<div class="form-actions"><shiro:hasPermission name="pms:house:edit"></shiro:hasPermission>
 			<input id="btnSubmit" class="btn btn-primary" type="submit" value="保 存"/>&nbsp;
 			<input id="btnCancel" class="btn" type="button" value="返 回" onclick="history.go(-1)"/>
-			<input id="btnTest" class="btn" type="button" value="test" />
+			<!-- input id="btnTest" class="btn" type="button" value="test" / -->
 		</div>
 	</form:form>
 </body>

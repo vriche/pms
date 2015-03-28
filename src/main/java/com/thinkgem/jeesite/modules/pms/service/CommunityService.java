@@ -15,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.persistence.Parameter;
 import com.thinkgem.jeesite.common.service.BaseService;
+import com.thinkgem.jeesite.common.utils.CacheUtils;
 import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.modules.pms.dao.CommunityDao;
 import com.thinkgem.jeesite.modules.pms.entity.Community;
+import com.thinkgem.jeesite.modules.pms.utils.HouseUtils;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 
@@ -68,11 +70,13 @@ public class CommunityService extends BaseService {
 	public void save(Community community) {
 		communityDao.clear();
 		communityDao.save(community);
+		CacheUtils.remove(HouseUtils.CACHE_HOUSE_TREE_MAP);
 	}
 	
 	@Transactional(readOnly = false)
 	public void delete(String id) {
 		communityDao.deleteById(id);
+		CacheUtils.remove(HouseUtils.CACHE_HOUSE_TREE_MAP);
 	}
 	
 	public List<Community> findAllCommunity(Community community){

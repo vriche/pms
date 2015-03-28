@@ -37,20 +37,20 @@
 	</script>
 </head>
 <body>
+
+<form:form id="inputForm" modelAttribute="fees" action="${ctx}/pms/fees/save" method="post" class="form-horizontal">
+
 	<ul class="nav nav-tabs">
 		<li><a id="list" href="#">收费项目列表</a></li>
-		<li class="active"><a href="${ctx}/pms/fees/form?id=${fees.id}">收费项目<shiro:hasPermission name="pms:fees:edit">${not empty fees.id?'修改':'添加'}</shiro:hasPermission><shiro:lacksPermission name="pms:fees:edit">查看</shiro:lacksPermission></a></li>
+		<li class="active"><a href="${ctx}/pms/fees/form?id=${fees.id}">收费项目 <shiro:hasPermission name="pms:fees:edit">${not empty fees.id?'修改':'添加'}</shiro:hasPermission><shiro:lacksPermission name="pms:fees:view">查看</shiro:lacksPermission></a></li>
 	</ul><br/>
-	<form:form id="inputForm" modelAttribute="fees" action="${ctx}/pms/fees/save" method="post" class="form-horizontal">
+
 		<form:hidden path="id"/>
 		<form:hidden id="proCompanyId" path="company.id" class="required"/>
 		<form:hidden id="feesType" path="feesType" class="required"/>
-		
+		<form:hidden id="isLadder" path="isLadder" class="required"/> 
 		<tags:message content="${message}"/>
 		
-		
-
-
 
 		<div class="control-group">
 			<label class="control-label">费项编号:</label>

@@ -14,9 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.service.BaseService;
+import com.thinkgem.jeesite.common.utils.CacheUtils;
 import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.modules.pms.entity.Buildings;
 import com.thinkgem.jeesite.modules.pms.entity.Community;
+import com.thinkgem.jeesite.modules.pms.utils.HouseUtils;
 import com.thinkgem.jeesite.modules.pms.dao.BuildingsDao;
 
 /**
@@ -96,7 +98,7 @@ public class BuildingsService extends BaseService {
 		}
 
 		dc.add(Restrictions.eq(Buildings.FIELD_DEL_FLAG, Buildings.DEL_FLAG_NORMAL));
-		dc.addOrder(Order.asc("code"));
+		dc.addOrder(Order.asc("sort"));
 //		User user = UserUtils.getUser();
 		return buildingsDao.find(dc);
 	}
@@ -106,11 +108,13 @@ public class BuildingsService extends BaseService {
 	public void save(Buildings buildings) {
 		buildingsDao.clear();
 		buildingsDao.save(buildings);
+		CacheUtils.remove(HouseUtils.CACHE_HOUSE_TREE_MAP);
 	}
 	
 	@Transactional(readOnly = false)
 	public void delete(String id) {
 		buildingsDao.deleteById(id);
+		CacheUtils.remove(HouseUtils.CACHE_HOUSE_TREE_MAP);
 	}
 	
 	

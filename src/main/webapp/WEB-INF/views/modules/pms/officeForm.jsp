@@ -67,7 +67,7 @@
 			<div class="controls">
 				<form:select path="sort" >
 					<form:option value="" label="请选择"/>
-					<form:options items="${fns:getDictList('sys_office_sort')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
+					<form:options items="${fns:getDictList2('sys_office_sort')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
 				</form:select>
 			</div>
 		</div>		

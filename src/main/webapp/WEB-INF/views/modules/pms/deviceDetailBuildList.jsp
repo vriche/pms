@@ -73,7 +73,7 @@
 			$("#btnSubmit").click(function(){
 			  if(checkFees()){
 				//loading('正在提交，请稍等...');
-		    	$("#searchForm").attr("action", "${ctx}/pms/deviceDetail/list");
+		    	$("#searchForm").attr("action", "${ctx}/pms/deviceBuild/list");
 		    	$("#searchForm").attr("onsubmit","loading('正在生成，请稍等...');");
 		    	$("#searchForm").submit();
 			  }
@@ -82,7 +82,7 @@
 			$("#btnSave").click(function(){
 			  if(checkFees()){
 			  // loading('正在保存，请稍等...');
-			   $("#searchForm").attr("action", "${ctx}/pms/deviceDetail/savedetail");
+			   $("#searchForm").attr("action", "${ctx}/pms/deviceBuild/savedetail");
 			   $("#searchForm").attr("onsubmit","loading('正在保存，请稍等...');");
 			   $("#searchForm").submit();
 			  }
@@ -119,7 +119,7 @@
 		
 		
 		function gett(id){
-			location.href = "${ctx}/pms/deviceDetail/form?id="+ id +"&lastDate="+$("#lastDate").val()+"&paymentDate="+$("#paymentDate").val();
+			location.href = "${ctx}/pms/deviceBuild/form?id="+ id +"&lastDate="+$("#lastDate").val()+"&paymentDate="+$("#paymentDate").val();
 		}
 		function checkFees(){
 				if($("#feesId").val() ==""){
@@ -251,6 +251,7 @@
 		<thead><tr>
 		<th>房间</th>
 		<th>业主</th>
+		<th>单位</th>
 		<th>费用</th>
 		
 	<!-- 1 按住户 -->
@@ -319,9 +320,10 @@
 		<c:forEach items="${page.list}" var="device">
 			<tr>
 			    <td style="display:none"><a href="#" id="id"  data-type="text" >${device.id}</a></td>
-				<td style="display:none"><a href="#" id="lastNum" data-url="${ctx}/pms/deviceDetail/savelastnum/" data-type="text" data-pk="${device.id}" data-title="输入本次读数">${device.lastNum}</a></td>
+				<td style="display:none"><a href="#" id="lastNum" data-url="${ctx}/pms/deviceBuild/savelastnum/" data-type="text" data-pk="${device.id}" data-title="输入本次读数">${device.lastNum}</a></td>
 			    <td>${device.house.fullName}</td>
 			    <td>${device.house.owner.name}</td>
+			    <td>${device.house.owner.company.name}</td>	
 				<td>${device.fees.name}</td>
 				
 				

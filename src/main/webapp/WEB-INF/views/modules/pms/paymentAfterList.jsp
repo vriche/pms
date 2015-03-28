@@ -19,18 +19,20 @@
 
        var houseId;
 	   var type;
+	   var officeId;
 		    
 		$(document).ready(function() {
 
-		     houseId = $.getUrlParam('house.id');
+		     houseId = $.getUrlParam('device.house.id');
 		     proCompanyId = $.getUrlParam('device.fees.company.id');
+		     officeId = $.getUrlParam('device.house.owner.company.id');
 		     type = $.getUrlParam('type');
 		    
 		    initGrid();
 		    
 			getPaymentDetails(houseId,type);
 		    
-			var url = "${ctx}/pms/payemtDetail/form?house.id="+houseId+"&device.fees.company.id="+ proCompanyId;
+			var url = "${ctx}/pms/deviceDetail/form3?device.house.id="+houseId+"&device.fees.company.id="+ proCompanyId;
 			$("#tabs1").attr("href",url);
 			
 			if(type == 1){
@@ -73,14 +75,14 @@
 		});
 		
 		
-		function deletePaymentDetail(id,payemtDetailId){
+		function deletePaymentDetail(id,deviceDetailId){
 		    var statu = confirm("请确认是否删除?");
 	        if(!statu){
 	            return false;
 	        }else{
 	          var url = "${ctx}/pms/paymentAfter/delete";
 	         
-			  $.ajax({ type:'POST', url:url,data:{'id':id,'payemtDetailId':payemtDetailId},success:function(data){
+			  $.ajax({ type:'POST', url:url,data:{'id':id,'deviceDetailId':deviceDetailId},success:function(data){
 			  	  	 getPaymentDetails(houseId,type);  
 					 
 			   } ,error:function(XMLHttpRequest, textStatus, errorThrown) alert("删除失败") })				       
@@ -89,25 +91,20 @@
 		}
 
 		
-		function openWin(id,paymentDetailId){
-		
-				
-				var url = "${ctx}/pms/paymentAfter/form?type="+ type +"&house.id="+houseId +"&payemtDetailId="+paymentDetailId;
-				
+		function openWin(id,deviceDetailId){
+				var url = "${ctx}/pms/paymentAfter/form?type="+ type +"&house.id="+houseId +"&deviceDetail.id="+deviceDetailId;
 				if(id > 0) url +="&id="+id; 
-				
-				
 				var callHandler = function (v, h, f) {
 				    var frm = $.jBox.getIframe("123").contentDocument.getElementById("inputForm");
 				    if (v == '1') {
-				        frm.submit();alert('已保存。');
+				        frm.submit();
+				        $.jBox.alert("保存完毕");
+				        $.jBox.close();
 				        getPaymentDetails(houseId,type);  
 				    }
 				    
 				    if (v == '2') {
-			 		
-				          deletePaymentDetail(id,paymentDetailId);				       
-				    
+				        deletePaymentDetail(id,deviceDetailId);				       
 				    }
 	
 				   return true;
@@ -139,19 +136,19 @@
 			mygrid = new dhtmlXGridObject('gridbox');
 			mygrid.selMultiRows = true;
 			mygrid.setImagePath("${ctxStatic}/dhtmlxTreeGrid/image/grid/");
-			var flds = "序,收费项目,收款单号,发票号 ,收款日期,收款金额,收款方式,收款人,操作";
+			var flds = "序,收款单号,发票号 ,收款日期,收款金额,收款方式,收款人,操作";
 			mygrid.setHeader(flds);
-			var columnIds = "inedx,feedName,feeCode,cerCode,price,firstNum,lastNum,cost,incone,paydates";
+			var columnIds = "inedx,feeCode,cerCode,price,firstNum,lastNum,cost,incone,paydates";
 			mygrid.setColumnIds(columnIds);
 			
-		    mygrid.setInitWidthsP("2,10,10,10,15,15,10,20,8");
-			mygrid.setColAlign("center,center,center,right,right,right,right,right,center");
-			mygrid.setColTypes("ed,ed,ed,ed,ed,ed,ed,ed,ed,ed");
+		    mygrid.setInitWidthsP("2,15,15,15,15,10,20,8");
+			mygrid.setColAlign("center,center,right,right,right,right,right,center");
+			mygrid.setColTypes("ed,ed,ed,ed,ed,ed,ed,ed,ed");
 		    
 		    mygrid.setMultiLine(false);
 			mygrid.setEditable(false);
 		    mygrid.setSkin("modern2");
-		    mygrid.setColSorting("na,str,str,str,str,str,int,co,int,int,int") ;
+		    mygrid.setColSorting("na,str,str,str,str,int,co,int,int,int") ;
 		    mygrid.enableAlterCss("even","uneven"); 
 		
 			mygrid.init();	 
@@ -164,17 +161,25 @@
 	}		
 	       
 	function RowDblClickedHandler(rowId,ellIndex){
-	       var paymentDetailId = this.getUserData(rowId,"paymentDetailId");
-           openWin(rowId,paymentDetailId);
+	       var deviceDetailId = this.getUserData(rowId,"deviceDetailId");
+           openWin(rowId,deviceDetailId);
 	}     
 	function getPaymentDetails(houseId,type){
 		var url = '${ctx}/pms/paymentAfter/getPaymentAfterJson';
 		var feeCode = $("#feeCode").val();
-		$.getJSON(url,{model:'house',houseId:houseId,type:type,feeCode:feeCode},function(data){
-			mygrid.clearAll();
-			mygrid.loadXMLString(data.grid);
-			mygrid.setSizes();	
-		});
+
+		$.getJSON(url,
+				  {model:'house',
+			  	  isPay:1,
+			  	  type:type,
+			  	  'device.house.id':houseId,
+			  	  feeCode:feeCode}
+		  ,function(data){
+				mygrid.clearAll();
+				mygrid.loadXMLString(data.grid);
+				mygrid.setSizes();	
+			});
+
 	}        
         
 	</script>

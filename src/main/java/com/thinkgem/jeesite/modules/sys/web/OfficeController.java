@@ -275,7 +275,7 @@ public class OfficeController extends BaseController {
 				map.put("id", e.getId());
 //				map.put("pId", !user.isAdmin() && e.getId().equals(user.getOffice().getId())?0:e.getParent()!=null?e.getParent().getId():0);
 				map.put("pId", e.getParent()!=null?e.getParent().getId():0);
-				map.put("name", e.getName());
+				map.put("name","("+e.getCode()+")"+ e.getName());
 				mapList.add(map);
 			}
 		}

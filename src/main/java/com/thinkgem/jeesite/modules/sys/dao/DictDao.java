@@ -25,6 +25,10 @@ public class DictDao extends BaseDao<Dict> {
 	public List<Dict> findAllList(){
 		return find("from Dict where delFlag=:p1 order by sort", new Parameter(Dict.DEL_FLAG_NORMAL));
 	}
+	
+	public List<Dict> findAllListByType(String type){
+		return find("from Dict where delFlag=:p1 and type=:p2 order by sort", new Parameter(Dict.DEL_FLAG_NORMAL,type));
+	}
 
 	public List<String> findTypeList(){
 		return find("select type from Dict where delFlag=:p1 group by type", new Parameter(Dict.DEL_FLAG_NORMAL));

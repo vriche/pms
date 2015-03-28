@@ -10,7 +10,7 @@
 <script src="${ctxStatic}/dhtmlxTreeGrid/dhtmlXGrid_excell_acheck.js" type="text/javascript"></script>
 <script src="${ctxStatic}/dhtmlxTreeGrid/dhtmlXGrid_excell_cntr.js" type="text/javascript"></script>
 
-
+<script src="${ctxStatic}/dhtmlxTreeGrid/ext/dhtmlxgrid_export.js" type="text/javascript"></script>
 
 
 

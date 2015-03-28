@@ -3,7 +3,7 @@
  */
 package com.thinkgem.jeesite.modules.pms.service;
 
-import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import org.hibernate.criterion.DetachedCriteria;
@@ -16,16 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.service.BaseService;
-import com.thinkgem.jeesite.common.utils.DateUtils;
 import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.modules.pms.dao.DeviceDao;
 import com.thinkgem.jeesite.modules.pms.dao.HouseDao;
+import com.thinkgem.jeesite.modules.pms.entity.Buildings;
+import com.thinkgem.jeesite.modules.pms.entity.Community;
 import com.thinkgem.jeesite.modules.pms.entity.Device;
 import com.thinkgem.jeesite.modules.pms.entity.Fees;
 import com.thinkgem.jeesite.modules.pms.entity.House;
+import com.thinkgem.jeesite.modules.pms.entity.Unit;
 import com.thinkgem.jeesite.modules.pms.utils.DeviceUtils;
 import com.thinkgem.jeesite.modules.pms.utils.FeesUtils;
 import com.thinkgem.jeesite.modules.pms.utils.HouseUtils;
+import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 
 /**
@@ -48,13 +51,17 @@ public class DeviceService extends BaseService {
 	}
 	
 	public Page<Device> find(Page<Device> page, Device device) {
-		
 		DetachedCriteria dc = findForPayemtDetailDC(device);
-
 		dc.add(Restrictions.eq(Device.FIELD_DEL_FLAG, Device.DEL_FLAG_NORMAL));
-//		dc.addOrder(Order.asc("code"));
 		return deviceDao.find(page, dc);
 	}
+	
+	public Page<Device> findPage(Page<Device> page, Device device) {
+		DetachedCriteria dc = findDeviceDC(device); 
+//		dc.addOrder(Order.asc("fees.sort")); 
+		return deviceDao.find(page, dc);
+	}
+
 	
 	
 	public List<Device> findAll(Device device) {
@@ -115,15 +122,27 @@ public class DeviceService extends BaseService {
 		String houseIds = device.getHouseIds();
         if(StringUtils.isNotEmpty(houseIds)){
     		List<House>  houseList = HouseUtils.getHousesList(houseIds);
+    		
+//    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333 houseList.size()>>>>>>>>>>>>>"+houseList.size());
+    		
     		List<String> values = Lists.newArrayList();
-    		for(House e:houseList){
-    			values.addAll(e.getDeviceIdList());
+//    		for(House h:houseList){
+//    			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333 h.getDeviceIdList()>>>>>>>>>>>>>"+h.getDeviceIdList());
+//    			values.addAll(h.getDeviceIdList());
+//    		}
+    		
+    		Iterator it = houseList.iterator();
+    		while(it.hasNext()){
+    			House h = (House)it.next();
+    			values.add(h.getId());
     		}
+    		
     	
 //    		List values = Collections3.extractToList(devList,"id");
-    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333>>>>>>>>>>>>>"+values);
+//    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333>>>>>>>>>>>>>"+values);
     		if(values.size() > 0){
-    			dc.add(Restrictions.in("id", values));
+    			dc.createAlias("house", "house");
+    			dc.add(Restrictions.in("house.id", values));
     		}
         }
 
@@ -173,7 +192,7 @@ public class DeviceService extends BaseService {
     		}
     	
 //    		List values = Collections3.extractToList(devList,"id");
-    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333>>>>>>>>>>>>>"+values);
+//    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333>>>>>>>>>>>>>"+values);
     		if(values.size() > 0){
     			dc.add(Restrictions.in("id", values));
     		}
@@ -196,7 +215,7 @@ public class DeviceService extends BaseService {
 
 		String houseIds = device.getHouseIds();
 		
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333 houseIds>>>>>>>>>>>>>"+houseIds);
+//		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333 houseIds>>>>>>>>>>>>>"+houseIds);
 		
 		List<String> values = Lists.newArrayList();
 		
@@ -221,16 +240,7 @@ public class DeviceService extends BaseService {
 	        
         
 		}
-//        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333>>>>>>>>>>>>>"+ DateUtils.formatDateTime(device.getLastDate()));
-//        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>44444444444>>>>>>>>>>>>>"+ DateUtils.formatDateTime(device.getPaymentDate()));
-        
-//        if(StringUtils.isNotEmpty(device.getLastDate().toString())){
-//        	dc.add(Restrictions.or(
-//        			Restrictions.gt("lastDate", device.getPaymentDate()),
-//        			Restrictions.lt("paymentDate", device.getLastDate())
-//			));
-//        	
-//        }
+
         
         
         //排除公摊设备
@@ -303,39 +313,23 @@ public class DeviceService extends BaseService {
 			dc.add(Restrictions.eq("type", device.getType()));
 		}	
 		
-
-		
-		
-//		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getType() 999999999999999999999999       >>>>>>>>>>>>>>>>>>>>>>>>"+ device.getType());
-//		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getPool() 999999999999999999999999       >>>>>>>>>>>>>>>>>>>>>>>>"+ device.getPool());
 		
 		if("1".equals(device.getModel())){
 			if(values.size() ==0){
 				dc.add(Restrictions.eq("id", "-1")); 
 			}
 		}
-//		if (StringUtils.isNotEmpty(device.getPool())){
-//			dc.add(Restrictions.eq("pool", "1")); 
-//		}
+
 		if (StringUtils.isNotEmpty(device.getPool())){
 			dc.add(Restrictions.eq("pool", device.getPool())); 
 		}
-		
-		
-//		if("2".equals(device.getModel())){
-//				dc.add(Restrictions.eq("pool", "1")); 
-//		}
-		
+
 		
 //		 dc = deviceDao.createDetachedCriteria();
 		dc.add(Restrictions.eq(Device.FIELD_DEL_FLAG, Device.DEL_FLAG_NORMAL));
 		
 //		 dc.addOrder(Order.asc("code")).addOrder(Order.asc("ff.code")); 
-		
-		
-//		dc.addOrder(Order.asc("ff.code")); 
-		
-//		System.out.println(">>>>>>>>>>>>>>>>>>>> dc.getAlias() 999999999999999999999999       >>>>>>>>>>>>>>>>>>>>>>>>"+ dc.getAlias());
+
 		
 		if("1".equals(device.getType())){
 			dc.addOrder(Order.asc("ff.code")); 
@@ -465,8 +459,8 @@ public class DeviceService extends BaseService {
 	
 	
 	
-	public List<Device> findAllList(String houseId,String feesId){
-		return deviceDao.findAllList(houseId,feesId);
+	public List<Device> findAllList(String houseId,String feesId,String enable){
+		return deviceDao.findAllList(houseId,feesId,enable);
 	}
 	
 	public List<Device> findAllChild(String houseId,String parentId){
@@ -478,6 +472,10 @@ public class DeviceService extends BaseService {
 
 //		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getHouse() >>>>>>>>>>>>>>>>>>>>>>>>"+device.getHouse());
 //		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getHouse().getId() 22222222222 >>>>>>>>>>>>>>>>>>>>>>>>"+device.getHouse().getId());
+		
+		if(device.getEnable() == null){
+			device.setEnable("0");
+		}
 		
 		String houseId = "" ;
 		if("1".equals(device.getType())){
@@ -496,31 +494,52 @@ public class DeviceService extends BaseService {
 		}
 		
 //		System.out.println(">>>>>>>>>>>>>>>>>>>>  device.getPool() >>>>>>>>666666666666666666>>>>>>>>>>>>>>>>"+ device.getPool());
-		device.setHouse(houseDao.get(houseId));
+		House h = houseDao.get(houseId);
+//		System.out.println(">>>>>>>>>>>>>>>>>>>>  device.getPool() >>>>>>>>666666666666666666>>>>>>>>>>>>>>>>"+h);
+		device.setHouse(h);
 		
 		Fees fees = FeesUtils.getFees(device.getFees().getId());
 		device.setFees(fees);
 		String pool = device.getPool() == null?"0":device.getPool();
 		device.setPool(pool);
 		device.setName("");
-		String code = DeviceUtils.getCode(device);
-		device.setCode(code);	
-
-		if(device.getParent() ==null){
-				device.setParent(new Device("0"));
-				device.setParentIds("0,");
-		}else{
-			if(StringUtils.isEmpty(device.getParent().getId())){
-				device.setParent(new Device("0"));
-				device.setParentIds("0,");
-			}	
-		}
-
 		
+		String code =device.getCode();
+		if(StringUtils.isBlank(code)){
+			code = DeviceUtils.getCode(device);
+		}
+		device.setCode(code);	
+		
+//		System.out.println(">>>>>>>>>>>>>>>>>>>>  device.getParent() >>>>>>>>666666666666666666>>>>>>>>>>>>>>>>"+ device.getParent());
+		if("1".equals(device.getType())){
+			Device parent = deviceDao.get("0");
+			device.setParent(parent);
+			device.setParentIds("0,");
+		}else{
+			
+//			System.out.println(">>>>>>>>>>>>>>>>>>>>  device.getParent() >>>>>>>>11111111111 666666666666666666>>>>>>>>>>>>>>>>"+ device.getParent().getId());
+			
+			if(device.getParent() == null||",".equals(device.getParent().getId())){
+				Device parent = deviceDao.get("0");
+				device.setParent(parent);
+				device.setParentIds("0,");
+			}else{
+				device.setParent(device.getParent());
+				device.setParentIds("0,"+device.getParent().getId());	
+			}
 
-//		device.setFirstDate(DateUtils.parseDate(DateUtils.getDateStart(device.getFirstDate())));
-//		device.setLastDate(DateUtils.parseDate(DateUtils.getDateStart(device.getLastDate())));
-//		device.setPaymentDate(DateUtils.parseDate(DateUtils.getDateStart(device.getPaymentDate())));
+		}
+//		Device parent = deviceDao.get("0");
+//		if(device.getParent() ==null){
+//				device.setParent(parent);
+//				device.setParentIds("0,");
+//		}else{
+//			if(StringUtils.isEmpty(device.getParent().getId())){
+//				device.setParent(device.getParent());
+//				device.setParentIds("0,");
+//			}	
+//		}
+
 
 		deviceDao.clear();
 		deviceDao.save(device);
@@ -531,11 +550,9 @@ public class DeviceService extends BaseService {
 	
 	@Transactional(readOnly = false)
 	public void saveDetail(Device device) {
-		
-//		device.setFirstDate(DateUtils.parseDate(DateUtils.getDateStart(device.getFirstDate())));
-//		device.setLastDate(DateUtils.parseDate(DateUtils.getDateStart(device.getLastDate())));
-//		device.setPaymentDate(DateUtils.parseDate(DateUtils.getDateStart(device.getPaymentDate())));
-		
+		if(device.getEnable() == null){
+			device.setEnable("0");
+		}
 		deviceDao.clear();
 		deviceDao.save(device);
 	}
@@ -543,6 +560,103 @@ public class DeviceService extends BaseService {
 	@Transactional(readOnly = false)
 	public void delete(String id) {
 		deviceDao.deleteById(id);
+	}
+	
+
+	private DetachedCriteria findDeviceDC(Device device) {
+		DetachedCriteria dc = deviceDao.createDetachedCriteria();
+		Device deviceParent = device.getParent();
+		Fees fees = device.getFees();
+		House house = device.getHouse();
+		Unit unit = house.getUnit();
+		Buildings buildings = unit.getBuildings();
+		Community community = buildings.getCommunity();
+		Office proCompany = community.getProCompany();
+		User owner = house.getOwner();
+		Office company = owner.getCompany();
+		
+		
+		String proCompanyId = proCompany.getId();
+		String communityId = community.getId();
+		String buildingsId = buildings.getId();
+		String unitId = unit.getId();
+		String houseId = house.getId();
+		String feesId = fees.getId();
+		String companyId = company.getId();
+		String deviceType = device.getType();
+		String enable = device.getEnable();
+		
+
+
+		dc.createAlias("fees", "fees");
+		dc.createAlias("fees.company", "proCompany");
+
+		if(!"1".equals(deviceType)){
+			dc.createAlias("house", "house");
+			dc.createAlias("house.owner", "owner");
+			dc.createAlias("owner.company", "company");
+			dc.createAlias("house.unit", "unit");
+			dc.createAlias("unit.buildings", "buildings");
+			dc.createAlias("buildings.community", "community");
+		}
+
+
+	
+		if (StringUtils.isNotEmpty(deviceType)){
+			dc.add(Restrictions.eq("type", deviceType));
+		}	
+	
+		if (StringUtils.isNotEmpty(feesId)){
+			dc.add(Restrictions.eq("fees.id", feesId));
+		}	
+		if (StringUtils.isNotEmpty(proCompanyId)){
+			dc.add(Restrictions.eq("proCompany.id", proCompanyId));
+		}	
+		
+		if(deviceParent != null){
+			String parentId = deviceParent.getId();
+			if(!"0".equals(parentId) && !StringUtils.isBlank(parentId)){
+				dc.createAlias("parent", "deviceparent");
+				dc.add(Restrictions.eq("deviceparent.id", parentId));
+			}
+		}	
+		
+		
+	
+		if(!"1".equals(deviceType)){
+			if (StringUtils.isNotEmpty(communityId)){
+				dc.add(Restrictions.eq("community.id", communityId));
+			}
+			if (StringUtils.isNotEmpty(buildingsId)){
+				dc.add(Restrictions.eq("buildings.id", buildingsId));
+			}	
+			if (StringUtils.isNotEmpty(unitId)){
+				dc.add(Restrictions.eq("unit.id", unitId));
+			}
+			if (StringUtils.isNotEmpty(companyId)){
+				dc.add(Restrictions.eq("company.id", companyId));
+			}	
+			if (StringUtils.isNotEmpty(houseId)){
+				dc.add(Restrictions.eq("house.id", houseId));
+			}		
+			
+			
+			
+		}
+
+		if(StringUtils.isNotEmpty(enable)){
+			dc.add(Restrictions.eq("enable", enable));
+		}
+		
+		dc.add(Restrictions.eq(device.FIELD_DEL_FLAG, device.DEL_FLAG_NORMAL));
+		
+		return dc;
+	}
+	
+	@Transactional(readOnly = false)
+	public Device findByPhone(String phone) {
+		return deviceDao.findByPhone(phone);
+
 	}
 	
 }

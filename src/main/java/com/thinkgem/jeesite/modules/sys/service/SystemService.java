@@ -18,6 +18,7 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Maps;
@@ -28,6 +29,7 @@ import com.thinkgem.jeesite.common.utils.Collections3;
 import com.thinkgem.jeesite.common.utils.Encodes;
 import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.modules.sys.dao.MenuDao;
+import com.thinkgem.jeesite.modules.sys.dao.MyBatisDBmanngerDao;
 import com.thinkgem.jeesite.modules.sys.dao.RoleDao;
 import com.thinkgem.jeesite.modules.sys.dao.UserDao;
 import com.thinkgem.jeesite.modules.sys.entity.Menu;
@@ -60,8 +62,58 @@ public class SystemService extends BaseService  {
 	
 	@Autowired
 	private IdentityService identityService;
-
-	//-- User Service --//
+	
+	
+	@Autowired
+	@SuppressWarnings("unused")
+	private MyBatisDBmanngerDao myBatisDBmanngerDao;
+	
+	@Transactional (propagation = Propagation.REQUIRED,readOnly=false)
+	public void emptyPmsDataAll(){
+	    myBatisDBmanngerDao.emptyPmsData_payment_pre();
+	    myBatisDBmanngerDao.emptyPmsData_payment_befor();
+	    myBatisDBmanngerDao.emptyPmsData_payment_after();
+	    myBatisDBmanngerDao.emptyPmsData_device_detail_payment();
+	    myBatisDBmanngerDao.emptyPmsData_device_detail_income();	 
+	    myBatisDBmanngerDao.emptyPmsData_sys_sequences_feeCode();
+	    myBatisDBmanngerDao.emptyPmsData_device_detail();
+	    myBatisDBmanngerDao.emptyPmsData_pms_device();
+	    myBatisDBmanngerDao.emptyPmsData_pms_house();
+	    myBatisDBmanngerDao.emptyPmsData_pms_unit();
+	    myBatisDBmanngerDao.emptyPmsData_pms_buildings();
+	    myBatisDBmanngerDao.emptyPmsData_pms_community();
+	    myBatisDBmanngerDao.emptyPmsData_sys_user_role();
+	    myBatisDBmanngerDao.emptyPmsData_sys_user();
+	    myBatisDBmanngerDao.emptyPmsData_sys_office();
+	    myBatisDBmanngerDao.emptyPmsData_pms_fees();
+	    
+	}
+	@Transactional (propagation = Propagation.REQUIRED,readOnly=false)
+	public void emptyPmsDataPayment(){
+	    myBatisDBmanngerDao.emptyPmsData_payment_pre();
+	    myBatisDBmanngerDao.emptyPmsData_payment_befor();
+	    myBatisDBmanngerDao.emptyPmsData_payment_after();
+	    myBatisDBmanngerDao.emptyPmsData_device_detail_payment();
+	    myBatisDBmanngerDao.emptyPmsData_device_detail_income();	
+	    myBatisDBmanngerDao.emptyPmsData_sys_sequences_feeCode();
+	}
+	@Transactional (propagation = Propagation.REQUIRED,readOnly=false)
+	public void emptyPmsDataDevice(){
+		myBatisDBmanngerDao.emptyPmsData_device_detail();
+		myBatisDBmanngerDao.emptyPmsData_pms_device();
+		myBatisDBmanngerDao.emptyPmsData_pms_house();
+		myBatisDBmanngerDao.emptyPmsData_pms_unit();
+		myBatisDBmanngerDao.emptyPmsData_pms_buildings();
+		myBatisDBmanngerDao.emptyPmsData_pms_community();
+	}
+	@Transactional (propagation = Propagation.REQUIRED,readOnly=false)
+	public void emptyPmsDataUser(){
+	    myBatisDBmanngerDao.emptyPmsData_sys_user_role();
+	    myBatisDBmanngerDao.emptyPmsData_sys_user();
+	    myBatisDBmanngerDao.emptyPmsData_sys_office();
+	    myBatisDBmanngerDao.emptyPmsData_pms_fees();
+	}
+	//-- User Service --// 
 	
 	public User getUser(String id) {
 		return userDao.get(id);

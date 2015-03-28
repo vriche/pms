@@ -76,7 +76,7 @@ public class FeesUtils {
 		    Iterator it = dictMap.values().iterator();
 			while (it.hasNext()){
 				Fees fees = (Fees)it.next();
-				if(fees.getCompany().getId().equals(proCoumtryId)){
+				if("0".equals(fees.getDelFlag()) && fees.getCompany().getId().equals(proCoumtryId)){
 					list.add(fees);
 				}
 			}

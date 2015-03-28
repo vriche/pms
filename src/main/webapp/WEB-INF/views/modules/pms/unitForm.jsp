@@ -120,7 +120,12 @@
 			</div>
 		</div>
 	
-	
+		<div class="control-group">
+		<label class="control-label">顺序:</label>
+		<div class="controls">
+			<form:input path="sort" htmlEscape="false" rows="4" maxlength="200" class="text medium;"/>
+		</div>
+		</div>	
 
 		<div class="form-actions">
 			<shiro:hasPermission name="pms:unit:edit"></shiro:hasPermission><input id="btnSubmit" class="btn btn-primary" type="submit" value="保 存"/>&nbsp;

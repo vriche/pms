@@ -240,7 +240,9 @@ public class CommunityController extends BaseController {
    		 	proCompanyId = request.getParameter("fees.company.id"); 
     	}
     	
-    	
+    	if("deviceDetail".endsWith(model)){
+   		 	proCompanyId = request.getParameter("device.fees.company.id"); 
+    	} 	
     	
 		Community community = new Community();
 		Office proCompany = new Office();

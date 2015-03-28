@@ -25,14 +25,26 @@
 			$("#deviceId").change(function(){
 				$("#searchForm").submit();
 				return false;
-			})					
+			})		
+			
+			
+//			 $("#feesId").remoteChained({
+//			        parents : "#proCompanyId",
+//			        url : "${ctx}/pms/pool/devicePooljson?model=device&fees.company.id="+ $("#proCompanyId").val()+"&fees.id="+ $("#feesId").val(),
+//			        loading : " ",
+//			        clear : true
+//		   	});
 	
-		   	 $("#deviceId").remoteChained({
-		        parents : "#proCompanyId",
-		        url : "${ctx}/pms/pool/devicePooljson?model=device&fees.company.id="+ $("#proCompanyId").val(),
-		        loading : " ",
-		        clear : true
-	   		 });	
+//		   	 $("#deviceId").remoteChained({
+//		        parents : "#feesId",
+//		        url : "${ctx}/pms/pool/devicePooljson?model=device&fees.company.id="+ $("#proCompanyId").val()+"&fees.id="+ $("#feesId").val(),
+//		        loading : " ",
+//		        clear : true
+//	   		 });	
+		   	 var url = "${ctx}/pms/pool/devicePooljson?model=device";
+		     $("#feesId").remoteChained("#proCompanyId", url);			
+		     $("#deviceId").remoteChained("#proCompanyId,#feesId", url);	
+	
 		   
 			
 		});
@@ -46,8 +58,7 @@
 </head>
 <body>
 	<ul class="nav nav-tabs">
-		<li class="active"><a href="${ctx}/pms/pool/">设备信息列表</a></li>
-		<li><a href="${ctx}/pms/device/form">设备信息添加</a></li>
+		<li class="active"><a href="${ctx}/pms/pool/">公摊信息列表</a></li>
 	</ul>
 	
 	<form:form id="inputForm" modelAttribute="device" action="${ctx}/pms/pool/save" method="post" class="form-horizontal">
@@ -61,41 +72,43 @@
 		<input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
 		
 		<label class="control-label">物业公司:</label>
-		<form:select id="proCompanyId" name="proCompanyId" path="fees.company.id"  class="text medium;required">
+		<form:select id="proCompanyId" name="proCompanyId" path="fees.company.id" style="width:190px"   class="text small;required">
 					<form:options items="${proCompanyList}" itemLabel="name" itemValue="id" htmlEscape="false" />
 		</form:select>
 		
-	
-	
 		
+		<label class="control-label">费项:</label>
+		<form:select id="feesId" name="feesId" path="fees.id"  style="width:100px;">
+					<!-- form:option value="" label=""/ -->
+					<form:options items="${feesList}" itemLabel="name" itemValue="id" htmlEscape="false" />
+		</form:select>		
+
 		<label>公摊设备:</label>
 		<form:select id="deviceId" name="deviceId" path="parent.id"  class="text medium;required">
 					<form:option value="" label=""/>
 					<form:options items="${parentList}" itemLabel="codeName" itemValue="id" htmlEscape="false" />
 		</form:select>
-		
-
-
 
 		&nbsp;<!-- input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/ -->
 		
-				<label class="control-label">房产：</label>  
+				<label  class="control-label">房产：</label>  
 	    <tags:treeselect id="house" 
 	    				  name="houseId"  
 	    				  title="房产" 
 	    				  value="${device.house.id}" 
 	    				  labelName="${house.name}" 
 	    				  labelValue="${device.house.name}" 
-	                      url="/pms/buildings/treeData?Level=4" 
+	                      url="/pms/buildings/treeData?Level=4&module=1" 
 	                      notAllowSelectParent="true"  
 	                      allowClear="true" 
 	                      checked="true"  
 	                      nodesLevel="2" 
 	                      nameLevel="1" 
-	                      cssClass="required" 
+	                      cssClass="input-small" 
 	                      proCompany="proCompanyId" 
+	                      deviceId="deviceId" 
 	                      />	
-		<input id="btnSave" name="btnSave" class="btn btn-primary" type="button" value="保 存"/>&nbsp;
+		<input id="btnSave" name="btnSave"  class="btn btn-primary" type="button" value="保 存"/>&nbsp;
 		
 	</form:form>
 	<tags:message content="${message}"/>

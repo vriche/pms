@@ -1,0 +1,2 @@
+<link href="${ctxStatic}/jquery-showLoading/css/showLoading.css" rel="stylesheet" type="text/css"/>
+<script src="${ctxStatic}/jquery-showLoading/js/jquery.showLoading.min.js" type="text/javascript"></script>

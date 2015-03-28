@@ -18,7 +18,6 @@
 			
 			$("#btnSubmit").click(function (e) {
 			    var action = "${ctx}/pms/device/save?a="+ $("#proCompanyId").val();
-			    
 			    $("#inputForm").attr("action",action);
 				$("#inputForm").submit();
 			});	
@@ -58,20 +57,24 @@
 	</script>
 </head>
 <body>
+
+<form:form id="inputForm" modelAttribute="device" action="#" method="post" class="form-horizontal">
+
 	<ul class="nav nav-tabs">
-		<li><a href="${ctx}/pms/device/">单元信息列表</a></li> <shiro:hasPermission name="pms:device:edit"></shiro:hasPermission>
-		<li class="active"><a href="${ctx}/pms/device/form?id=${device.id}">单元信息${not empty device.id?'修改':'添加'}<shiro:lacksPermission name="pms:device:edit">查看</shiro:lacksPermission></a></li>
+		<li><a href="${ctx}/pms/device/">计费设备列表</a></li> <shiro:hasPermission name="pms:device:edit"></shiro:hasPermission>
+		<li class="active"><a href="${ctx}/pms/device/form?id=${device.id}">计费设备${not empty device.id?'修改':'添加'}<shiro:lacksPermission name="pms:device:edit">查看</shiro:lacksPermission></a></li>
 	</ul><br/>
-	<form:form id="inputForm" modelAttribute="device" action="#" method="post" class="form-horizontal">
+	
 		<form:hidden path="id"/>
 		<form:hidden path="parent.id"/>
 		<form:hidden path="parentIds"/>
 		<form:hidden path="house.id"/>
 		
 		<form:hidden id="proCompanyId" path="fees.company.id"/>
+		<!-- form:hidden id="deviceId" name="deviceId" path="parent.id"/ -->
 	
-	
-	 
+		<form:hidden id="deviceId" name="deviceId" path="id"/>
+		
 		<tags:message content="${message}"/>
 		
 		
@@ -105,8 +108,8 @@
 		
 		
 
-	
-	
+	 
+	 <!-- 
 	  <c:if test="${device.type == 1}">
 	  	   <div class="control-group">
 			<label class="control-label">分摊方式:</label>
@@ -117,105 +120,120 @@
 			</div>
 		</div>
 	</c:if> 
+	-->
+		
+	<div style="display:none">
+		
+					<div class="control-group">
+						<label class="control-label">上次读数:</label>
+						<div class="controls">
+						    <form:input path="firstNum" htmlEscape="false" maxlength="200"/>
+							
+						</div>
+					</div>
+					
+					
+					<div class="control-group">
+						<label class="control-label">本次读数:</label>
+						<div class="controls">
+							 <form:input path="lastNum" htmlEscape="false" maxlength="200"/>
+						</div>
+					</div>		
 		
 
 		
-		<div class="control-group">
-			<label class="control-label">上次读数:</label>
-			<div class="controls">
-			    <form:input path="firstNum" htmlEscape="false" maxlength="200"/>
-				
-			</div>
-		</div>
-		
-		
-		<div class="control-group">
-			<label class="control-label">本次读数:</label>
-			<div class="controls">
-				 <form:input path="lastNum" htmlEscape="false" maxlength="200"/>
-			</div>
-		</div>		
-		
-
-		
-		<div class="control-group">
-			<label class="control-label">上次日期:</label>
-			<div class="controls">
-			<input id="firstDate" name="firstDate" type="text" readonly="readonly" maxlength="20" 
-							value="<fmt:formatDate value="${device.firstDate}" pattern="yyyy-MM-dd"/>" class=" Wdate"/>
-			</div>
-		</div>
-		
-		
-		<div class="control-group">
-			<label class="control-label">本次日期:</label>
-			<div class="controls">
-				<input id="lastDate" name="lastDate" type="text" readonly="readonly" maxlength="20" 
-							value="<fmt:formatDate value="${device.lastDate}" pattern="yyyy-MM-dd"/>" class=" Wdate"/>
-			</div>
-		</div>		
+					<div class="control-group">
+						<label class="control-label">上次日期:</label>
+						<div class="controls">
+						<input id="firstDate" name="firstDate" type="text" readonly="readonly" maxlength="20" 
+										value="<fmt:formatDate value="${device.firstDate}" pattern="yyyy-MM-dd"/>" class=" Wdate"/>
+						</div>
+					</div>
+					
+					
+					<div class="control-group">
+						<label class="control-label">本次日期:</label>
+						<div class="controls">
+							<input id="lastDate" name="lastDate" type="text" readonly="readonly" maxlength="20" 
+										value="<fmt:formatDate value="${device.lastDate}" pattern="yyyy-MM-dd"/>" class=" Wdate"/>
+						</div>
+					</div>		
 			
 
 		
 		
-	   <div class="control-group">
-			<label class="control-label">本次用量:</label>
-			<div class="controls">
-				
-				 <form:input path="usageAmount" htmlEscape="false" maxlength="200"/>
-			</div>
-		</div>	
+				   <div class="control-group">
+						<label class="control-label">本次用量:</label>
+						<div class="controls">
+							
+							 <form:input path="usageAmount" htmlEscape="false" maxlength="200"/>
+						</div>
+					</div>	
 		
-		<c:if test="${device.type  == 2}">
-		
-		  <c:if test="${device.pool  == 1}">
-		   <div class="control-group">
-				<label class="control-label">本次公摊量:</label>
-				<div class="controls">
-					 <form:input path="poolUsageAmount" htmlEscape="false" maxlength="200"/>
-				</div>
-			</div>		
-			
-			</c:if>
-		</c:if> 
+					<c:if test="${device.type  == 2}">
+					
+					  <c:if test="${device.pool  == 1}">
+					   <div class="control-group">
+							<label class="control-label">本次公摊量:</label>
+							<div class="controls">
+								 <form:input path="poolUsageAmount" htmlEscape="false" maxlength="200"/>
+							</div>
+						</div>		
+						
+						</c:if>
+					</c:if> 
 
 
+		
+					<c:if test="${device.type  != 1}">
+						
+						<div class="control-group">
+							<label class="control-label">是否公摊:</label>
+							<div class="controls">
+								 <form:checkbox path="pool" value="1"/>
+							</div>
+						</div>	
+						
+							<div class="control-group">
+								<label class="control-label">交费限期:</label>
+								<div class="controls">
+								<input id="paymentDate" name="paymentDate" type="text" readonly="readonly" maxlength="20" 
+												value="<fmt:formatDate value="${device.paymentDate}" pattern="yyyy-MM-dd"/>" class=" Wdate"/>
+								</div>
+							</div>		
+					</c:if> 		
+					
+						
+	</div>						
+					
 		
 		<c:if test="${device.type  != 1}">
-		
-		<div class="control-group">
-			<label class="control-label">是否公摊:</label>
-			<div class="controls">
-				 <form:checkbox path="pool" value="1"/>
-			</div>
-		</div>	
-		
-			<div class="control-group">
-				<label class="control-label">交费限期:</label>
-				<div class="controls">
-				<input id="paymentDate" name="paymentDate" type="text" readonly="readonly" maxlength="20" 
-								value="<fmt:formatDate value="${device.paymentDate}" pattern="yyyy-MM-dd"/>" class=" Wdate"/>
-				</div>
-			</div>		
-				
+
 			<div class="control-group">
 	                <label class="control-label">房 间：</label>
 	                <div class="controls">
 	                
+
 				    <tags:treeselect id="house" 
-				    				  name="houseId"  
-				    				  title="房产" 
-				    				  value="${device.house.id}" 
-				    				  labelName="${house.name}" 
-				    				  labelValue="${device.house.name}" 
-				                      url="/pms/buildings/treeData?Level=4" 
-				                      notAllowSelectParent="true"  
-				                      allowClear="true" 
-				                      nodesLevel="2" 
-				                      nameLevel="1" 
-				                      cssClass="required" 
-				                      proCompany="proCompanyId" 
-				                      />	               
+	    				  name="houseId"  
+	    				  title="房产" 
+	    				  value="${device.house.id}" 
+	    				  labelName="${house.fullName}" 
+	    				  labelValue="${device.house.fullName}" 
+	                      url="/pms/buildings/treeData?Level=4" 
+	                      notAllowSelectParent="true"  
+	                      allowClear="true" 
+	                      checked="false"  
+	                      nodesLevel="2" 
+	                      nameLevel="1" 
+	                      cssClass="text medium;" 
+	                      proCompany="proCompanyId" 
+	                      deviceId="deviceId" 
+	                      />		
+				    
+
+				    
+				    
 	   
 	                </div>
 	        </div>
@@ -223,7 +241,12 @@
 		
 		
 		
-		
+		<div class="control-group">
+		<label class="control-label">是否启用:</label>
+			<div class="controls">
+			 <form:checkbox path="enable"  value="1"  htmlEscape="false" maxlength="200" />
+			</div>
+		</div>	
 	
 	
 		

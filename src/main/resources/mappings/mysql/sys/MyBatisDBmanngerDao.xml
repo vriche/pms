@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.sys.dao.MyBatisDBmanngerDao">
+    
+ 
+	<delete id="emptyPmsData_payment_pre" >
+		TRUNCATE table  pms_payment_pre;
+	</delete>
+	
+	<delete id="emptyPmsData_payment_befor" >
+		TRUNCATE table  pms_payment_befor;
+	</delete>
+	
+	<delete id="emptyPmsData_payment_after" >
+		TRUNCATE table  pms_payment_after;
+	</delete>
+	
+	<delete id="emptyPmsData_device_detail_payment" >
+		TRUNCATE table  pms_device_detail_payment;
+	</delete>
+	
+	<update id="emptyPmsData_device_detail_income" >
+		UPDATE pms_device_detail SET income_money =0;
+	</update>
+	
+	<update id="emptyPmsData_sys_sequences_feeCode" >
+		TRUNCATE table  sys_sequences;
+	</update>
+	
+	
+	<delete id="emptyPmsData_device_detail" >
+		TRUNCATE table  pms_device_detail;
+	</delete>
+
+
+	<delete id="emptyPmsData_pms_device" >
+		TRUNCATE table  pms_device;
+	</delete>
+	
+	<delete id="emptyPmsData_pms_house" >
+		TRUNCATE table  pms_house;
+	</delete>
+	
+		<delete id="emptyPmsData_pms_unit" >
+		TRUNCATE table  pms_unit;
+	</delete>
+	
+	<delete id="emptyPmsData_pms_buildings" >
+		TRUNCATE table  pms_buildings;
+	</delete>
+	
+	<delete id="emptyPmsData_pms_community" >
+		TRUNCATE table  pms_community;
+	</delete>
+	
+	
+	<delete id="emptyPmsData_sys_user_role" >
+		delete FROM sys_user_role where user_id>1;
+	</delete>
+	
+	<delete id="emptyPmsData_sys_user" >
+		delete FROM sys_user where id>1;
+	</delete>
+
+	<delete id="emptyPmsData_pms_fees" >
+		delete FROM pms_fees  where company_id>1;
+	</delete>
+	
+	<delete id="emptyPmsData_sys_office" >
+		delete FROM sys_office where id>1;
+	</delete>	
+		
+</mapper>
+
+
+
+
+

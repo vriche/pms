@@ -44,9 +44,14 @@ public abstract class BaseService {
 		List<String> dataScope = Lists.newArrayList();
 		Junction junction = Restrictions.disjunction();
 		
+		
+		
 		// 超级管理员，跳过权限过滤
 		if (!user.isAdmin()){
 			for (Role r : user.getRoleList()){
+				
+				System.out.println(">>>>>>>>>>>>>>>>>>>"+ r.getDataScope());
+				
 				if (!dataScope.contains(r.getDataScope()) && StringUtils.isNotBlank(officeAlias)){
 					boolean isDataScopeAll = false;
 					if (Role.DATA_SCOPE_ALL.equals(r.getDataScope())){
@@ -89,6 +94,8 @@ public abstract class BaseService {
 		}
 		return junction;
 	}
+	
+	
 	
 	/**
 	 * 数据范围过滤

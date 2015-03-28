@@ -10,8 +10,8 @@ import org.springframework.stereotype.Repository;
 import com.thinkgem.jeesite.common.persistence.BaseDao;
 import com.thinkgem.jeesite.common.persistence.Parameter;
 import com.thinkgem.jeesite.common.utils.StringUtils;
+import com.thinkgem.jeesite.modules.pms.entity.Device;
 import com.thinkgem.jeesite.modules.pms.entity.House;
-import com.thinkgem.jeesite.modules.sys.entity.Role;
 
 /**
  * 收费项目DAO接口
@@ -31,6 +31,36 @@ public class HouseDao extends BaseDao<House> {
 				  + "  where h.id = d.house.id "
 				  + "  and  d.id=:p1";
 		return getByHql(sql, new Parameter(deviceId));
+	}
+	
+	
+
+	public List<House> findHouseByDevice(String deviceId){
+//		String sql = "select distinct h from House h,Device d "
+//				  + "  where h.id = d.house.id "
+//				  + "  and  d.parent.id=:p1";
+		
+//		String sql = "select distinct h from House h,Device d "
+//		  + "  where h.id = d.house.id "
+//		  + "  and  d.parent.id=:p1";
+//		
+//		return findBySql(sql, new Parameter(deviceId));
+		
+//		String sql = "select  h.* from pms_house h,pms_device d "
+//				  + "  where h.id = d.house_id "
+//				  + "  and  d.parent_id="+deviceId;
+		
+		
+		
+		
+		String sql = "select distinct h from House h,Device d "
+		  + "  where h.id = d.house.id "
+		  + "  and  d.parent.id="+deviceId
+		 + "  and  d.delFlag="+Device.DEL_FLAG_NORMAL;
+		
+//		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>666666666666666666666666666666666   sql          >>>"+sql);
+		
+		return find(sql);
 	}
 	
 	public List<House> findByProcompany(String proCompanyId){
@@ -57,7 +87,7 @@ public class HouseDao extends BaseDao<House> {
 	
 	
 	public List<House> findByUnitId(String unitId){
-		String sql = "select distinct h from House h,Unit u  where h.delFlag=:p1 and u.id=:p2";
+		String sql = "select distinct h from House h,Unit u  where  h.unit.id = u.id and h.delFlag=:p1 and u.id=:p2";
 		return getRes(sql,unitId);
 	}
 	
@@ -129,7 +159,7 @@ public class HouseDao extends BaseDao<House> {
 //	}
 
 
-
+	
 
 	
 }

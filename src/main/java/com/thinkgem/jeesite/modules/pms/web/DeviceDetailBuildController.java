@@ -52,7 +52,7 @@ import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
  * @version 2014-04-23
  */
 @Controller
-@RequestMapping(value = "${adminPath}/pms/deviceDetail")
+@RequestMapping(value = "${adminPath}/pms/deviceBuild")
 public class DeviceDetailBuildController extends BaseController {
 //	@Autowired
 //	private OfficeService officeService;
@@ -204,7 +204,7 @@ public class DeviceDetailBuildController extends BaseController {
 		redirectAttributes.addAttribute("house.unit.id",unitId);
 
 		addMessage(redirectAttributes, "保存单元信息'" + device.getName() + "'成功");
-		return "redirect:"+Global.getAdminPath()+"/pms/deviceDetail/?repage";
+		return "redirect:"+Global.getAdminPath()+"/pms/deviceBuild/?repage";
 	}
 	
 	
@@ -229,7 +229,7 @@ public class DeviceDetailBuildController extends BaseController {
 //		deviceService.saveDetail(d);
 		addMessage(redirectAttributes, "保存单元信息'" + device.getName() + "'成功");
 //		return null;
-		return "redirect:"+Global.getAdminPath()+"/pms/deviceDetail/?repage";
+		return "redirect:"+Global.getAdminPath()+"/pms/deviceBuild/?repage";
 	}
 
 	@RequestMapping(value = "savedetail")
@@ -279,7 +279,7 @@ public class DeviceDetailBuildController extends BaseController {
 	public String delete(String id, RedirectAttributes redirectAttributes) {
 		deviceService.delete(id);
 		addMessage(redirectAttributes, "删除单元信息成功");
-		return "redirect:"+Global.getAdminPath()+"/pms/deviceDetail/?repage";
+		return "redirect:"+Global.getAdminPath()+"/pms/deviceBuild/?repage";
 	}
 	
 	

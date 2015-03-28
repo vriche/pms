@@ -43,8 +43,23 @@ public class CompanyService extends BaseService {
 	
 	
 	public Page<Office> find(Page<Office> page, Office office) {
+		User currentUser = UserUtils.getUser();
+		
+//		System.out.println(">>>>>>>>>>>>>>>>>>>"+ office.getSort());
 		
 		DetachedCriteria dc = officeDao.createDetachedCriteria();
+		
+//		if(StringUtils.isBlank(office.getSort())){
+//			dc.add(Restrictions.eq("id", "0"));
+//			return officeDao.find(page, dc);
+//		}else{
+//			if (!currentUser.isAdmin() && office.getSort().equals("1")){
+//				dc.add(Restrictions.eq("id", "0"));
+//			}
+//		}
+//		
+
+//		dc.createAlias("office", "office");
 
 		if (StringUtils.isNotEmpty(office.getSort())){
 			dc.add(Restrictions.eq("sort", office.getSort()));
@@ -54,10 +69,17 @@ public class CompanyService extends BaseService {
 			dc.add(Restrictions.like("name", "%"+office.getName()+"%"));
 		}	
 		
+//		dc.add(dataScopeFilter2(currentUser, "", ""));
 		
+//		System.out.println("dc.getAlias()>>>>>>>>>>>>>>>>>>>"+ dc.getAlias());
+		
+		dc.add(dataScopeFilter(UserUtils.getUser(), dc.getAlias(), ""));
 		
 		dc.add(Restrictions.eq(office.FIELD_DEL_FLAG, office.DEL_FLAG_NORMAL));
 		dc.addOrder(Order.desc("id"));
+		
+//		System.out.println(">>>>>>>>>>>>>>>>>>>"+ dc.);
+		
 		return officeDao.find(page, dc);
 	}
 	
@@ -76,6 +98,10 @@ public class CompanyService extends BaseService {
 
 		if (StringUtils.isNotEmpty(office.getSort())){
 			dc.add(Restrictions.eq("sort", office.getSort()));
+		}
+		
+		if (StringUtils.isNotEmpty(office.getCode())){
+			dc.add(Restrictions.eq("code", office.getCode()));
 		}
 		
 		dc.add(Restrictions.eq("delFlag", Office.DEL_FLAG_NORMAL));
@@ -112,6 +138,7 @@ public class CompanyService extends BaseService {
 		office.setParentIds(office.getParent().getParentIds()+office.getParent().getId()+",");
 		officeDao.clear();
 		officeDao.save(office);
+		
 		// 更新子节点 parentIds
 		List<Office> list = officeDao.findByParentIdsLike("%,"+office.getId()+",%");
 		for (Office e : list){

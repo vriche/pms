@@ -3,8 +3,7 @@
  */
 package com.thinkgem.jeesite.modules.pms.service;
 
-import java.util.Date;
-import java.util.HashMap;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -15,9 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.thinkgem.jeesite.common.beanvalidator.BeanValidators;
 import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.service.BaseService;
+import com.thinkgem.jeesite.common.utils.Arith;
+import com.thinkgem.jeesite.common.utils.CacheUtils;
 import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.modules.pms.dao.BuildingsDao;
 import com.thinkgem.jeesite.modules.pms.dao.CommunityDao;
@@ -25,11 +25,12 @@ import com.thinkgem.jeesite.modules.pms.dao.HouseDao;
 import com.thinkgem.jeesite.modules.pms.dao.UnitDao;
 import com.thinkgem.jeesite.modules.pms.entity.Buildings;
 import com.thinkgem.jeesite.modules.pms.entity.Community;
+import com.thinkgem.jeesite.modules.pms.entity.DeviceDetail;
 import com.thinkgem.jeesite.modules.pms.entity.House;
 import com.thinkgem.jeesite.modules.pms.entity.Unit;
+import com.thinkgem.jeesite.modules.pms.utils.HouseUtils;
 import com.thinkgem.jeesite.modules.sys.dao.AreaDao;
 import com.thinkgem.jeesite.modules.sys.dao.OfficeDao;
-import com.thinkgem.jeesite.modules.sys.entity.Area;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 
@@ -85,6 +86,133 @@ public class HouseService extends BaseService {
 	}	
 	
 	
+	public Page<House> find3(Page<House> page, String proCompanyId, String communityId, String buildingsId, String unitId,String houseId) {
+		DetachedCriteria dc = houseDao.createDetachedCriteria();
+		
+		dc.createAlias("owner", "owner");
+		dc.createAlias("owner.company", "office");
+		dc.createAlias("unit", "unit");
+		dc.createAlias("unit.buildings", "buildings");
+		dc.createAlias("buildings.community", "community");
+		dc.createAlias("community.proCompany", "proCompany");
+		
+		if (StringUtils.isNotEmpty(proCompanyId)){
+			dc.add(Restrictions.eq("proCompany.id", proCompanyId));
+		}		
+		if (StringUtils.isNotEmpty(communityId)){
+			dc.add(Restrictions.eq("community.id", communityId));
+		}
+		if (StringUtils.isNotEmpty(buildingsId)){
+			dc.add(Restrictions.eq("buildings.id", buildingsId));
+		}	
+		if (StringUtils.isNotEmpty(unitId)){
+			dc.add(Restrictions.eq("unit.id", unitId));
+		}	
+		dc.add(Restrictions.eq(House.FIELD_DEL_FLAG, House.DEL_FLAG_NORMAL));
+		
+		return houseDao.find(page, dc);
+
+	}	
+	
+	public DetachedCriteria findHouseDC(House house) {
+		DetachedCriteria dc = houseDao.createDetachedCriteria();
+		
+		dc.createAlias("owner", "owner");
+		dc.createAlias("owner.company", "office");
+		dc.createAlias("unit", "unit");
+		dc.createAlias("unit.buildings", "buildings");
+		dc.createAlias("buildings.community", "community");
+		dc.createAlias("community.proCompany", "proCompany");
+		
+//		String proCompanyId, String communityId, String buildingsId, String unitId,String houseId
+		
+		String proCompanyId = house.getUnit().getBuildings().getCommunity().getProCompany().getId();
+		String communityId = house.getUnit().getBuildings().getCommunity().getId();
+		String buildingsId = house.getUnit().getBuildings().getId();
+		String unitId = house.getUnit().getId();
+		
+		if (StringUtils.isNotEmpty(proCompanyId)){
+			dc.add(Restrictions.eq("proCompany.id", proCompanyId));
+		}		
+		if (StringUtils.isNotEmpty(communityId)){
+			dc.add(Restrictions.eq("community.id", communityId));
+		}
+		if (StringUtils.isNotEmpty(buildingsId)){
+			dc.add(Restrictions.eq("buildings.id", buildingsId));
+		}	
+		if (StringUtils.isNotEmpty(unitId)){
+			dc.add(Restrictions.eq("unit.id", unitId));
+		}	
+		dc.add(Restrictions.eq(House.FIELD_DEL_FLAG, House.DEL_FLAG_NORMAL));
+		
+		dc.addOrder(Order.asc("community.id")).addOrder(Order.asc("buildings.sort")).addOrder(Order.asc("unit.sort")).addOrder(Order.asc("sort"));
+		
+		return dc;
+//		return houseDao.find(page, dc);
+
+	}	
+	
+	
+	public Page<House> findPage(Page<House> page, House house,Map<String,Object> mp,int mapType) {
+		DetachedCriteria dc = findHouseDC(house);
+		houseDao.find(page,dc);
+		if(mp != null){
+			List<House> list = page.getList();
+			 for (House h : list){
+				User owner = h.getOwner();
+				String userName = owner.getName();
+				String userType = owner.getUserType();
+				String companyName = owner.getCompany().getName();
+				String id =  h.getId();
+				String code = h.getCode();
+				if("2".equals(userType)){
+					code += "("+ userName+")";
+				}else{
+					code = companyName;
+				}
+				
+				h.setCode(code);
+				if(mapType ==1){
+					mp.put(id, code);
+				}else{
+					mp.put(id, h);
+				}
+
+			 }
+		}else{
+			List<House> list = page.getList();
+			
+			if(mapType ==1){
+				 for (House h : list){
+						User owner = h.getOwner();
+						String userName = owner.getName();
+						String userType = owner.getUserType();
+						String companyName = owner.getCompany().getName();
+						String id =  h.getId();
+						String code = h.getCode();
+
+						if("2".equals(userType)){
+							code += "("+ userName+")";
+						}else{
+							code = companyName;
+						}
+						
+//						 System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..userType>>>>>>>>"+code);
+						 
+						h.setCode(code);
+			
+
+					 }		
+			}
+		
+
+		}
+		
+		
+		return page;
+	}
+	
+
 	
 	
 	public House findByDevice(String deviceId) {
@@ -92,13 +220,15 @@ public class HouseService extends BaseService {
 	}
 	
 	
+	   public List<House> findHouseByDevice(String deviceId){
+		   return houseDao.findHouseByDevice(deviceId);
+	   }
+	
 	   public List<House> findAllHouse(House house){
 			DetachedCriteria dc = houseDao.createDetachedCriteria();
 			Unit unit = house.getUnit();
 			User owner = house.getOwner();
-			
-			
-			
+
 			
 			if(unit != null){
 				dc.createAlias("unit", "unit");
@@ -126,9 +256,16 @@ public class HouseService extends BaseService {
 			if(owner != null){
 				dc.createAlias("owner", "owner");
 				String ownerId = owner.getId();
+				
+				String loginName = owner.getLoginName();
+				
 				if (StringUtils.isNotEmpty(ownerId)){
 					dc.add(Restrictions.eq("owner.id", ownerId));
 				}
+				
+//				if (StringUtils.isNotEmpty(loginName)){
+//					dc.add(Restrictions.eq("owner.loginName", loginName));
+//				}
 				
 				Office company = owner.getCompany();
 				
@@ -153,53 +290,26 @@ public class HouseService extends BaseService {
 	public void save(House house) {
 		houseDao.clear();
 		houseDao.save(house);
+		CacheUtils.remove(HouseUtils.CACHE_HOUSE_TREE_MAP);
 	}
 	
 	@Transactional(readOnly = false)
 	public void delete(String id) {
 		houseDao.deleteById(id);
+		CacheUtils.remove(HouseUtils.CACHE_HOUSE_TREE_MAP);
 	}
 	
+	@Transactional(readOnly = false)
+	public void deleteByUserId(String id) {
+//		houseDao.deleteByUsserId(id);
+	}
 	
 	@Transactional(readOnly = false)
 	public House saveForExcel(House house,Office offic,Map<String,Community> mpCommunity, Map<String,Buildings> mpBuildings,Map<String,Unit> mpUnit, Map<String,House> mpHouse,int i){
-		   
-	
-		   
-	
+
 		String proCompanyName = offic.getName();
+		String communityName =  house.getCommunityName();
 
-		   
-//		   String key0 = proCompanyName;
-//		   if(!mpProCompany.containsKey(key0)){
-//			   List<Office> lsProCompany = officeDao.find("select distinct P from Office P where P.name like '%"+ proCompanyName +"%'");
-//			   if(lsProCompany.size() == 1){
-//				   Office office = lsProCompany.get(0);
-//				   mpProCompany.put(key0, office);
-//			   }else{
-//				   Office office = new Office();
-//				    office.setCreateDate(new Date());
-//					Office parent = new Office();parent.setId("0");
-//					office.setParent(parent);
-////					Area area = new Area();area.setId("3");
-//					office.setArea(areaDao.get("3"));
-//					office.setType("1");
-//					office.setGrade("1");
-//					office.setSort("1");
-//					office.setIsCharge("1");				   
-//				   office.setName(proCompanyName);
-//				   office.setCode(proCompanyName);
-//			
-//				   officeDao.save(office);
-//				   mpProCompany.put(key0, office);
-//			   }
-//			   
-//		   }   
-		   
-
-				   String communityName =  house.getCommunityName();
-//				   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>communityName>>>>>>>>>"+communityName);
-				   
 				   String key1 = proCompanyName+communityName;
 				   if(!mpCommunity.containsKey(key1)){
 					   String sql = "select distinct A from Office P,Community A where  P.name like '%"+ proCompanyName +"%' AND A.name like '%"+ communityName +"%' and A.delFlag=0";
@@ -216,6 +326,8 @@ public class HouseService extends BaseService {
 						   community.setDevCompany(offic);
 						   community.setName(communityName);
 						   community.setCode(communityName);
+//						   community.setSort(Integer.valueOf(communityName));
+						   
 						   communityDao.clear();
 						   communityDao.save(community);
 //						   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>community.getId()>>>>>>>>>"+community.getId());
@@ -246,6 +358,8 @@ public class HouseService extends BaseService {
 						   buildings.setCommunity(mpCommunity.get(key1));
 						   buildings.setName(buildingsName);
 						   buildings.setCode(buildingsName);
+//						   buildings.setSort(Integer.valueOf(buildingsName));
+						   
 						   buildingsDao.clear();
 						   buildingsDao.save(buildings);
 						   mpBuildings.put(key2, buildings);
@@ -256,6 +370,7 @@ public class HouseService extends BaseService {
 
 				   
 				   String unitName = house.getUnitName();
+				   if(!"单元".equals(unitName)){ unitName = unitName+"单元"; }
 //				   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>unitName>>>>>>>>>"+unitName);
 				   String key3 = proCompanyName+communityName+buildingsName+unitName;
 				   if(!mpUnit.containsKey(key3)){
@@ -275,53 +390,54 @@ public class HouseService extends BaseService {
 						   unit.setBuildings(mpBuildings.get(key2));
 						   unit.setName(unitName);
 						   unit.setCode(unitName);
-						   
+						   unit.setSort(Integer.valueOf(house.getUnitName()));
 						   unitDao.clear();
 						   unitDao.save(unit);
 						   mpUnit.put(key3, unit);
 					   }
 					   
 				   } 
+				   
 					   String houseName = house.getName();
-//					   
-//					   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>houseName>>>>>>>>>"+houseName);
-//					   
-					   String key4 = proCompanyName+communityName+buildingsName+unitName+houseName;
+					   String numFloor = house.getNumFloorStr();
+					   String key4 = proCompanyName+communityName+buildingsName+unitName+numFloor+houseName;
 					   
 					   
 					   if(!mpHouse.containsKey(key4)){
-						   String sql ="select distinct D from Office P,Community A,Buildings B,Unit C,House D  where  P.name like '%"+ proCompanyName +"%' AND A.name like '%"+ communityName +"%' and B.name like '%"+ buildingsName +"%'"+"and C.name like '%"+ unitName +"%' and D.name like '%"+ houseName +"%'  and D.delFlag=0";
+						   String sql ="select distinct D from Office P,Community A,Buildings B,Unit C,House D  where  P.name like '%"+ proCompanyName +"%' AND A.name like '%"+ communityName +"%' and B.name like '%"+ buildingsName +"%'"+"and C.name like '%"+ unitName +"%' and D.name like '%"+ houseName +"%'  and D.numFloor like '%"+ numFloor +"%' and D.delFlag=0";
+//						   String sql ="select distinct D from Office P,Community A,Buildings B,Unit C,House D  where  P.name = '"+ proCompanyName +"' AND A.name = '"+ communityName +"' and B.name = '"+ buildingsName +"' and C.name = '"+ unitName +"' and D.name = '"+ houseName +"' and D.numFloor = '"+ numFloor +"'  and D.delFlag=0";
+						   
 						   sql +=" and P.id = A.proCompany.id"; 
 						   sql +=" and A.id = B.community.id"; 
 						   sql +=" and B.id = C.buildings.id"; 
 						   sql +=" and C.id = D.unit.id"; 
-						   List<House> lsHouse = unitDao.find(sql);
+						   List<House> lsHouse = houseDao.find(sql);
+						   
 						   if(lsHouse.size() == 1){
 							   House h1 = lsHouse.get(0);
 							   h1.setUnit(mpUnit.get(key3));
 							   h1.setOwner(house.getOwner());
+							   h1.setBuildArea(StringUtils.toBigDecimal(house.getBuildAreaStr()));
+							   h1.setUseArea(StringUtils.toBigDecimal(Arith.roundEVEN(h1.getBuildArea().doubleValue()*0.9, 2)));
+							   h1.setNumFloor(StringUtils.getNullValue(house.getNumFloorStr(), "1"));	
+							   houseDao.clear();
+							   houseDao.save(h1);
 							   mpHouse.put(key4, h1);
 						   }else{
 							   House h = new House();
-//							   h.setUnit(mpUnit.get(key3));
-//							   h.setOwner(house.getOwner());
-//							   h.setName(houseName);
-//							   h.setCode(houseName);
-//							   h.setBuildArea(StringUtils.toBigDecimal(house.getBuildAreaStr()));
-//							   h.setUseArea(StringUtils.toBigDecimal(house.getUseAreaStr()));
-//							   houseDao.clear();
-//							   houseDao.save(h);
-							   
 							   h.setUnit(mpUnit.get(key3));
 							   h.setOwner(house.getOwner());
 							   h.setName(houseName);
 							   h.setCode(houseName);
+							   h.setSort(Integer.valueOf(houseName));
+//							   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>1>>>>>>>>>>>..>houseName>>>>>>>>>"+houseName);
 							   h.setBuildArea(StringUtils.toBigDecimal(house.getBuildAreaStr()));
-							   h.setUseArea(StringUtils.toBigDecimal(house.getUseAreaStr()));
-							   h.setNumFloor(new Integer(StringUtils.getNullValue(house.getNumFloorStr(), "1")));					   
+							   h.setUseArea(StringUtils.toBigDecimal(StringUtils.toDouble(house.getBuildAreaStr())*0.9));
+							   h.setNumFloor(StringUtils.getNullValue(house.getNumFloorStr(), "1"));	
+//							   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>2>>>>>>>>>>>..>houseName>>>>>>>>>"+h.getOwner().getName());
 							   houseDao.clear();
 							   houseDao.save(h);
-							   
+//							   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>3>>>>>>>>>>>..>houseName>>>>>>>>>"+houseName);
 							   mpHouse.put(key4, h);
 						   }			   
 					   

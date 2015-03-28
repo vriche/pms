@@ -71,15 +71,6 @@ public class PayemtDetail extends IdEntity<PayemtDetail> {
 	private String officeId;
 	
 
-	
-
-	
-	
-
-
-
-
-
 
 	public PayemtDetail() {
 		super();

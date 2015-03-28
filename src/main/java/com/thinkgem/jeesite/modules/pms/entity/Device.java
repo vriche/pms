@@ -1,6 +1,7 @@
 package com.thinkgem.jeesite.modules.pms.entity;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -25,15 +26,10 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Where;
-import org.hibernate.validator.constraints.Length;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.IdEntity;
-import com.thinkgem.jeesite.common.utils.DateUtils;
-import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.common.utils.excel.annotation.ExcelField;
-import com.thinkgem.jeesite.modules.sys.entity.Office;
 
 
 @Entity
@@ -54,10 +50,10 @@ public class Device extends IdEntity<Device> {
 	private String codeName; 
 
 
-	private String feesMode; // fees_mode pms_fees_mode '公摊方式' 1：一级；2：二级；3：三级；4：四级）
+	private String feesMode;// '公摊方式' feesMode 1 按住户   2 按房屋面积    3 按加建面积  4 按使用量    5 按实际应收金额    6 自定义
 	
 
-
+	private BigDecimal unitPrice; // unit_price '单位价格',
 
 	private BigDecimal firstNum; // first_num 上次读数
 	private BigDecimal lastNum; // last_num 本次读数
@@ -84,13 +80,11 @@ public class Device extends IdEntity<Device> {
 	
 	private BigDecimal sumUsageAmount;   // sum_usage_amount  总用量	
 	private BigDecimal sumPayMoney; // pool_usage_amount  本次公摊金额
+	private BigDecimal incomeMoney; // income_money 收款金额
 
-
-
+	private String feesParams =""; //费用参数，来源于费用的 Remarks，目前取暖费按面积的90%收取
 
 	private String model;
-
-
 
 	private Integer sort; // '排序（升序）',
 	
@@ -105,7 +99,9 @@ public class Device extends IdEntity<Device> {
 	
 	private String houseIds ="";
 	
-	
+//	private String readWatch; //是否抄表
+
+	private String poolId ="0";
 	
 	
 	
@@ -164,9 +160,9 @@ public class Device extends IdEntity<Device> {
 	public Device() {
 		super();
 		this.sort = 30;
-		this.firstDate = new java.util.Date();
-		this.lastDate = new java.util.Date();
-		this.paymentDate = new java.util.Date();
+		this.firstDate = new Date();
+		this.lastDate = new Date();
+		this.paymentDate = new Date();
 		this.enable ="1";
 		this.pool ="1";
 		this.firstNum = new BigDecimal("0");
@@ -176,6 +172,9 @@ public class Device extends IdEntity<Device> {
 		this.arrears =  new BigDecimal("0");
 		this.payMoney =  new BigDecimal("0");
 		this.poolPayMoney =  new BigDecimal("0");
+		this.sumPayMoney=  new BigDecimal("0");
+//		this.setSumUsageAmount(sumUsageAmount);
+//		this.parent = new Device("0");
 		
 	}
 
@@ -203,6 +202,7 @@ public class Device extends IdEntity<Device> {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name="parent_id")
 	@NotFound(action = NotFoundAction.IGNORE)
+//	@ExcelField(title="公摊编号",  align=2, sort=1,value="Parent.id")
 //	@NotNull
 	public Device getParent() {
 		return parent;
@@ -210,6 +210,17 @@ public class Device extends IdEntity<Device> {
 
 	public void setParent(Device parent) {
 		this.parent = parent;
+	}
+	
+	
+	@Transient
+	@ExcelField(title="公摊编号",  align=2, sort=1)
+	public String getPoolId() {
+		return poolId;
+	}
+
+	public void setPoolId(String poolId) {
+		this.poolId = poolId;
 	}
 	
 	
@@ -314,7 +325,9 @@ public class Device extends IdEntity<Device> {
 		this.enable = enable;
 	}
 	
+//	@Transient
 	public String getPool() {
+//		String r = parent !=null?"1":"0";
 		return pool;
 	}
 
@@ -354,18 +367,21 @@ public class Device extends IdEntity<Device> {
 		this.model = model;
 	}
 	
+
 	
-	public String getFeesMode() {
-		return feesMode;
-	}
-
-
 	public void setFeesMode(String feesMode) {
 		this.feesMode = feesMode;
+	}
+	
+
+
+	public void setFeesParams(String feesParams) {
+		this.feesParams = feesParams;
 	}
 
 	
 	@Transient
+	@ExcelField(title="公摊费用", align=3, sort=14) 
 	public BigDecimal getPoolPayMoney() {
 		return poolPayMoney;
 	}
@@ -376,6 +392,7 @@ public class Device extends IdEntity<Device> {
 	}
 	
 	@Transient
+	@ExcelField(title="总应收款",  align=3, sort=15)
 	public BigDecimal getSumPayMoney() {
 		return sumPayMoney;
 	}
@@ -383,6 +400,15 @@ public class Device extends IdEntity<Device> {
 
 	public void setSumPayMoney(BigDecimal sumPayMoney) {
 		this.sumPayMoney = sumPayMoney;
+	}
+	@Transient
+	@ExcelField(title="到账金额",  type=1,align=2, sort=16)
+	public BigDecimal getIncomeMoney() {
+		return incomeMoney;
+	}
+
+	public void setIncomeMoney(BigDecimal incomeMoney) {
+		this.incomeMoney = incomeMoney;
 	}
 	
 	@Transient
@@ -438,17 +464,14 @@ public class Device extends IdEntity<Device> {
 	}
 
 	private String deviceIdStr;
-
-
 	private BigDecimal firstNumStr;
 	private BigDecimal curNumStr;
 	
 	private BigDecimal curUsageAmountStr;
 	private BigDecimal curPoolUsageAmountStr;
-	private Date firsDateStr;
-
-
-	private Date curDateStr; // 
+	private String firsDateStr;
+	
+	private String curDateStr; // 
 	private Date curPaymentDateStr; // 
 	private String ownerCodeStr;
 	private String ownerStr;
@@ -459,7 +482,7 @@ public class Device extends IdEntity<Device> {
 
 
 	@Transient
-	@ExcelField(title="序",  align=2, sort=1)
+	@ExcelField(title="序",  align=2, sort=0)
 	public String getDeviceIdStr() {
 		deviceIdStr = this.id;
 		return deviceIdStr;
@@ -473,7 +496,7 @@ public class Device extends IdEntity<Device> {
 
 
 
-//	@ExcelField(title="收费编号", align=0, sort=3)
+	@ExcelField(title="收费编号", align=0, sort=1)
 	public String getCode() {
 		return code;
 	}
@@ -488,18 +511,32 @@ public class Device extends IdEntity<Device> {
 	public Fees getFees() {
 		return fees;
 	}
+	
+	
+	@Transient
+	@ExcelField(title="收费方式",  align=2, sort=3,value="Fees.feesMode")
+	public String getFeesMode() {
+		return feesMode;
+	}
+	
+	
+	@Transient
+	@ExcelField(title="费用参数",  align=2, sort=4)
+	public String getFeesParams() {
+		return feesParams;
+	}
 
 	@ManyToOne
 	@JoinColumn(name="house_id")
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ExcelField(title="房屋", align=1, sort=3,value="House.fullName")
+	@ExcelField(title="房屋", align=1, sort=5,value="House.fullName")
 	public House getHouse() {
 		return house;
 	}
 	
 
 	@Transient
-	@ExcelField(title="业主编号", align=2, sort=4,value="House.owner.loginName")
+	@ExcelField(title="业主编号", align=2, sort=6,value="House.owner.loginName")
 	@NotFound(action = NotFoundAction.IGNORE)
 	public String getOwnerCodeStr() {
 		return ownerCodeStr;
@@ -508,7 +545,7 @@ public class Device extends IdEntity<Device> {
 
 	
 	@Transient
-	@ExcelField(title="业主", align=2, sort=6,value="House.owner.name")
+	@ExcelField(title="业主", align=2, sort=7,value="House.owner.name")
 	@NotFound(action = NotFoundAction.IGNORE)
 	public String getOwnerStr() {
 		return ownerStr;
@@ -517,7 +554,7 @@ public class Device extends IdEntity<Device> {
 	
 
 	@Transient
-	@ExcelField(title="单位", align=1, sort=7,value="House.owner.company.name")
+	@ExcelField(title="单位", align=1, sort=8,value="House.owner.company.name")
 	@NotFound(action = NotFoundAction.IGNORE)
 	public String getCompanyStr() {
 		return companyStr;
@@ -526,24 +563,34 @@ public class Device extends IdEntity<Device> {
 
 	
 	@Transient
-	@Temporal(TemporalType.TIMESTAMP)
+//	@Temporal(TemporalType.TIMESTAMP)
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ExcelField(title="上次读表日", align=2, sort=8)
-	public Date getFirsDateStr() {
+	@ExcelField(title="上次读表日", align=2, sort=9)
+	public String getFirsDateStr() {
 		return firsDateStr;
 	}
 
 	@Transient 
-	@Temporal(TemporalType.TIMESTAMP)
+//	@Temporal(TemporalType.TIMESTAMP)
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ExcelField(title="付款期限", align=2,  sort=9)
+//	@ExcelField(title="付款期限", align=2,  sort=9)
 	public Date getCurPaymentDateStr() {
 		return curPaymentDateStr;
 	}
 	
+	
+	@Transient
+//	@Temporal(TemporalType.TIMESTAMP)
+	@NotFound(action = NotFoundAction.IGNORE)
+	@ExcelField(title="本次读表日", align=2,  sort=10)
+	public String getCurDateStr() {
+//		curDateStr =  DateUtils.parseDate(DateUtils.getDate()+" 00:00:00");
+		return curDateStr;
+	}
+	
 	@Transient
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ExcelField(title="上次读数",  align=3,  sort=10)
+	@ExcelField(title="上次读数",  align=3,  sort=11)
 	public BigDecimal getFirstNumStr() {
 		return firstNumStr;
 	}
@@ -553,7 +600,7 @@ public class Device extends IdEntity<Device> {
 
 	@Transient
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ExcelField(title="本次读数", align=3,  sort=11)
+	@ExcelField(title="本次读数", align=3,  sort=12)
 	public BigDecimal getCurNumStr() {
 		return curNumStr;
 	}
@@ -561,29 +608,32 @@ public class Device extends IdEntity<Device> {
 
 	@Transient
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ExcelField(title="本次用量", align=3, sort=12) 
+	@ExcelField(title="本次用量", align=3, sort=13) 
 	public BigDecimal getCurUsageAmountStr() {
 		return curUsageAmountStr;
 	}
+	
+	
+
+
 
 	@Transient
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ExcelField(title="本次公摊量", align=3, sort=13) 
+//	@ExcelField(title="公摊量", align=3, sort=14) 
 	public BigDecimal getCurPoolUsageAmountStr() {
 		return curPoolUsageAmountStr;
 	}
 	
-	@Transient
-	@Temporal(TemporalType.TIMESTAMP)
-	@NotFound(action = NotFoundAction.IGNORE)
-//	@ExcelField(title="本次读表日", align=2,  sort=13)
-	public Date getCurDateStr() {
-//		curDateStr =  DateUtils.parseDate(DateUtils.getDate()+" 00:00:00");
-		return curDateStr;
+	@ExcelField(title="单价", align=3, sort=15)
+	public BigDecimal getUnitPrice() {
+		return unitPrice;
+	}
+
+	public void setUnitPrice(BigDecimal unitPrice) {
+		this.unitPrice = unitPrice;
 	}
 	
 
-	
 
 	
 	public void setDeviceIdStr(String deviceIdStr) {
@@ -623,7 +673,7 @@ public class Device extends IdEntity<Device> {
 	}
 	
 
-	public void setFirsDateStr(Date firsDateStr) {
+	public void setFirsDateStr(String firsDateStr) {
 		this.firsDateStr = firsDateStr;
 	}
 	
@@ -650,7 +700,7 @@ public class Device extends IdEntity<Device> {
 	}
 	
 
-	public void setCurDateStr(Date curDateStr) {
+	public void setCurDateStr(String curDateStr) {
 		this.curDateStr = curDateStr;
 	}
 
@@ -676,6 +726,9 @@ public class Device extends IdEntity<Device> {
 	public void setFees(Fees fees) {
 		this.fees = fees;
 	}
+
+
+
 	
 //	@Override
 //	public String toString() {

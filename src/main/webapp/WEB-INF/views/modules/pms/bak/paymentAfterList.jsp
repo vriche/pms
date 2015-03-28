@@ -50,8 +50,6 @@
 				<td>${paymentAfter.recMoney}</td>
 				<td>${paymentAfter.payType}</td>
 				<td>${paymentAfter.user.name}</td>
-				
-				
 				<td>${paymentAfter.remarks}</td>
 				<shiro:hasPermission name="pms:paymentAfter:edit"></shiro:hasPermission><td>
     				<a href="${ctx}/pms/paymentAfter/form?id=${paymentAfter.id}">修改</a>

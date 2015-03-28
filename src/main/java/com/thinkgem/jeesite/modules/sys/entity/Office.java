@@ -61,6 +61,7 @@ public class Office extends IdEntity<Office> {
 	private String email; 	// 邮箱
 	private String sort; 	// 机构类型（1：对公；2：个人；）
 	private String isCharge; 	//is_charge  （是否计费）
+	private String parentCode; 	// 父级编码
 	
 	
 
@@ -79,17 +80,7 @@ public class Office extends IdEntity<Office> {
 		this.id = id;
 	}
 	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="parent_id")
-	@NotFound(action = NotFoundAction.IGNORE)
-	@NotNull
-	public Office getParent() {
-		return parent;
-	}
 
-	public void setParent(Office parent) {
-		this.parent = parent;
-	}
 
 	@Length(min=1, max=255)
 	public String getParentIds() {
@@ -133,8 +124,41 @@ public class Office extends IdEntity<Office> {
 		this.code = code;
 	}
 	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name="parent_id")
+	@NotFound(action = NotFoundAction.IGNORE)
+	@NotNull
+	public Office getParent() {
+		return parent;
+	}
+
+	public void setParent(Office parent) {
+		this.parent = parent;
+	}
+	
+	@Transient
+	@ExcelField(title="父级编码", align=2, sort=3)
+	public String getParentCode() {
+		return parentCode;
+	}
+
+
+	public void setParentCode(String parentCode) {
+		this.parentCode = parentCode;
+	}
+
 	@Length(min=1, max=1)
-	@ExcelField(title="机构类型", align=2, sort=80, dictType="sys_office_type")
+	@ExcelField(title="机构等级", align=2, sort=89, dictType="sys_office_grade")
+	public String getGrade() {
+		return grade;
+	}
+
+	public void setGrade(String grade) {
+		this.grade = grade;
+	}
+	
+	@Length(min=1, max=1)
+	@ExcelField(title="机构类型", align=2, sort=90, dictType="sys_office_type")
 	public String getType() {
 		return type;
 	}
@@ -143,15 +167,7 @@ public class Office extends IdEntity<Office> {
 		this.type = type;
 	}
 
-	@Length(min=1, max=1)
-	@ExcelField(title="机构等级", align=2, sort=80, dictType="sys_office_grade")
-	public String getGrade() {
-		return grade;
-	}
 
-	public void setGrade(String grade) {
-		this.grade = grade;
-	}
 
 	@Length(min=0, max=255)
 	@ExcelField(title="联系地址", align=2, sort=30)
@@ -295,5 +311,10 @@ public class Office extends IdEntity<Office> {
 	public static boolean isRoot(String id){
 		return id != null && id.equals("1");
 	}
+
+
+	
+	
+	
 	
 }

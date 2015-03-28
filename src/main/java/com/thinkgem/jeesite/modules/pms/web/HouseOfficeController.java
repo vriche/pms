@@ -217,7 +217,7 @@ public class HouseOfficeController extends BaseController {
 		// 取数据库不存在的元素
 		if(house.getId() != null){
 			unit = house.getUnit();
-			List<Device> ls = deviceService.findAllList(house.getId(),null);
+			List<Device> ls = deviceService.findAllList(house.getId(),null,null);
 			house.setDeviceList(ls);
 			deviceListDB = house.getDeviceList();
 			feesIdListDB = house.getFeesIdList();// 已经存在的项目
@@ -308,7 +308,7 @@ public class HouseOfficeController extends BaseController {
 			temp2 = Collections3.intersection(feesIdListDT, feesIdListDB);
 			System.out.println("temp2>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+temp2.toString());
 			for (String fid : temp2) {
-				List<Device> ls = deviceService.findAllList(house.getId(),fid);
+				List<Device> ls = deviceService.findAllList(house.getId(),fid,null);
 				for (Device d : ls) {
 					d.setEnable("1");
 					deviceService.save(d);
@@ -319,7 +319,7 @@ public class HouseOfficeController extends BaseController {
 			List<String> temp3 = Collections3.subtract(feesIdListDB, feesIdListDT);
 			System.out.println("temp3>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+temp3.toString());
 			for (String fid : temp3) {
-				List<Device> ls = deviceService.findAllList(house.getId(),fid);
+				List<Device> ls = deviceService.findAllList(house.getId(),fid,null);
 				for (Device d : ls) {
 					d.setEnable("0");
 					deviceService.save(d);

@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.ckfinder.connector.ServletContextFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.thinkgem.jeesite.common.config.Global;
@@ -36,6 +37,7 @@ import com.thinkgem.jeesite.common.web.BaseController;
 import com.thinkgem.jeesite.modules.pms.entity.Buildings;
 import com.thinkgem.jeesite.modules.pms.entity.Community;
 import com.thinkgem.jeesite.modules.pms.entity.Device;
+import com.thinkgem.jeesite.modules.pms.entity.DeviceDetail;
 import com.thinkgem.jeesite.modules.pms.entity.Fees;
 import com.thinkgem.jeesite.modules.pms.entity.House;
 import com.thinkgem.jeesite.modules.pms.entity.PayemtDetail;
@@ -180,14 +182,20 @@ public class PayemtDetailController extends BaseController {
 		String type = request.getParameter("type");
 		
 		
-		System.out.println("type>>" + type +"| id>>"+id + "|name>>" + name + "|level>>" + level + "|proCompanyId>>" + proCompanyId);  
+//		System.out.println("type>>" + type +"| id>>"+id + "|name>>" + name + "|level>>" + level + "|proCompanyId>>" + proCompanyId);  
 		
 //		System.out.println("getAdminPath>>"+Global.getAdminPath()+"/jeesite/a/payemtDetail/none" );  
-		System.out.println("getAdminPath>>"+Global.getAdminPath()+"/pms/payemtDetail/none");  
+//		System.out.println("getAdminPath>>"+Global.getAdminPath()+"/pms/payemtDetail/none");  
 		
+		String ctx =  "";
+		try {
+			 ctx =  ServletContextFactory.getServletContext().getContextPath();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-
-		
+//		System.out.println("getAdminPath>>"+ctx);
 		
 		if("1".equals(type)){
 			
@@ -207,9 +215,10 @@ public class PayemtDetailController extends BaseController {
 						map.put("name", c.getName());	
 						map.put("isParent", true);
 						map.put("open", true);	
-						
 						map.put("target", "cmsMainFrame");	
-						map.put("url","/jeesite"+Global.getAdminPath()+"/pms/payemtDetail/form2?officeId="+c.getId()+"&device.fees.company.id="+proCompanyId);
+//						System.out.println("ctx>>>>>>>>>>>>>>>"+ ctx);  
+						
+						map.put("url", ctx +Global.getAdminPath()+"/pms/payemtDetail/form2?officeId="+c.getId()+"&device.fees.company.id="+proCompanyId);
 						mapList.add(map);
 					}
 	
@@ -251,7 +260,7 @@ public class PayemtDetailController extends BaseController {
 					map.put("level",1);
 					map.put("name", names);	
 					map.put("target", "cmsMainFrame");	
-					map.put("url","/jeesite"+Global.getAdminPath()+"/pms/payemtDetail/form?house.id="+h.getId()+"&device.fees.company.id="+proCompanyId);
+					map.put("url",ctx +Global.getAdminPath()+"/pms/payemtDetail/form?house.id="+h.getId()+"&device.fees.company.id="+proCompanyId);
 
 					mapList.add(map);
 				}
@@ -346,7 +355,7 @@ public class PayemtDetailController extends BaseController {
 				map.put("level",3);
 				map.put("name", names);	
 				map.put("target", "cmsMainFrame");	
-				map.put("url","/jeesite"+Global.getAdminPath()+"/pms/payemtDetail/form?house.id="+h.getId()+"&device.fees.company.id="+proCompanyId);
+				map.put("url",ctx+Global.getAdminPath()+"/pms/payemtDetail/form?house.id="+h.getId()+"&device.fees.company.id="+proCompanyId);
 
 				mapList.add(map);
 			}
@@ -520,7 +529,7 @@ public class PayemtDetailController extends BaseController {
 		Map mpOwnerNum = new HashMap();
 		
 		if("2".equals(type)){
-			paymentAfter.setType("1");  //预付款
+//			paymentAfter.setType("1");  //预付款
 			PaymentAfter pAfter = paymentAfterService.find(paymentAfter);
 			preMoney = Double.parseDouble(StringUtils.getNullValue(pAfter.getRecMoney(), "0"));
 		}
@@ -545,8 +554,7 @@ public class PayemtDetailController extends BaseController {
 			 
 			double payMoney = Arith.roundEVEN(Arith.roundEVEN(d.getPayMoney().doubleValue(),2)+Arith.roundEVEN(d.getPoolPayMoney().doubleValue(),2),2);
 //			String payMoneyStr = String.valueOf(payMoney);
-			
-			
+
 			double incomeMoney = Arith.roundEVEN(Double.parseDouble(StringUtils.getNullValue(d.getIncomeMoney() , "0")),2);
 			incomeMoneySum +=incomeMoney;
 			
@@ -656,8 +664,8 @@ public class PayemtDetailController extends BaseController {
 		
 		House house = new House(houseId);
 		paymentAfter.setHouse(house);
-		paymentAfter.setUser(u);
-		paymentAfter.setReceDate(receD);
+//		paymentAfter.setUser(u);
+//		paymentAfter.setReceDate(receD);
 
 		//预付款  如果 leaveMoneyOut大于0，
 		double leaveMoneyOutA = Double.parseDouble(StringUtils.getNullValue(leaveMoneyOut, "0"));
@@ -673,11 +681,11 @@ public class PayemtDetailController extends BaseController {
 		if(leaveMoneyOutA > 0){
 			paymentAfter.setId(null);
 			paymentAfter.setRecMoney(new BigDecimal(-leaveMoneyOutA));
-			paymentAfter.setPayType("1");  //现金
-			paymentAfter.setType("1");   //1 预付   2现付 
-			paymentAfter.setFeeCode("");
-			paymentAfter.setCertCode("");
-			paymentAfter.setCostMoney(new BigDecimal(0));
+//			paymentAfter.setPayType("1");  //现金
+//			paymentAfter.setType("1");   //1 预付   2现付 
+//			paymentAfter.setFeeCode("");
+//			paymentAfter.setCertCode("");
+//			paymentAfter.setCostMoney(new BigDecimal(0));
 			paymentAfterService.save(paymentAfter);		
 	 	}			
 		
@@ -685,11 +693,11 @@ public class PayemtDetailController extends BaseController {
 		if(lle >0){
 			paymentAfter.setId(null);
 			paymentAfter.setRecMoney(new BigDecimal(lle));
-			paymentAfter.setPayType("1");  //现金
-			paymentAfter.setType("1");   //1 预付   2现付 
-			paymentAfter.setFeeCode("");
-			paymentAfter.setCertCode("");
-			paymentAfter.setCostMoney(new BigDecimal(0));
+//			paymentAfter.setPayType("1");  //现金
+//			paymentAfter.setType("1");   //1 预付   2现付 
+//			paymentAfter.setFeeCode("");
+//			paymentAfter.setCertCode("");
+//			paymentAfter.setCostMoney(new BigDecimal(0));
 			paymentAfterService.save(paymentAfter);	
 		}	
 		
@@ -736,16 +744,17 @@ public class PayemtDetailController extends BaseController {
 				if(Double.parseDouble(StringUtils.getNullValue(incomeMoney2, "0")) >0){
 					PaymentAfter paymentAfter2 = new PaymentAfter();
 					paymentAfter2.setId(null);
-					paymentAfter2.setPayemtDetailId(new Long(id));
+//					paymentAfter2.setPayemtDetailId(new Long(id));
+					paymentAfter2.getDeviceDetailList().add(new DeviceDetail(id));
 					paymentAfter2.setHouse(house);
-					paymentAfter2.setUser(u);
-					paymentAfter2.setReceDate(receD);
-					paymentAfter2.setType("2");    //1 预付   2现付
-					paymentAfter2.setPayType(payType);  //现金
-					paymentAfter2.setFeedName(feedName);
-					paymentAfter2.setFeeCode(StringUtils.getNullValue(feeCode, ""));
-					paymentAfter2.setCertCode(StringUtils.getNullValue(certCode, ""));
-					paymentAfter2.setCostMoney(new BigDecimal(0)); //应付金额
+//					paymentAfter2.setUser(u);
+//					paymentAfter2.setReceDate(receD);
+//					paymentAfter2.setType("2");    //1 预付   2现付
+//					paymentAfter2.setPayType(payType);  //现金
+//					paymentAfter2.setFeedName(feedName);
+//					paymentAfter2.setFeeCode(StringUtils.getNullValue(feeCode, ""));
+//					paymentAfter2.setCertCode(StringUtils.getNullValue(certCode, ""));
+//					paymentAfter2.setCostMoney(new BigDecimal(0)); //应付金额
 					paymentAfter2.setRecMoney(new BigDecimal(incomeMoney2)); //实收金额
 					paymentAfterService.save(paymentAfter2);	
 				}
@@ -805,17 +814,19 @@ public class PayemtDetailController extends BaseController {
 			if(Double.parseDouble(StringUtils.getNullValue(incomeMoney2, "0")) >0){
 				PaymentAfter paymentAfter = new PaymentAfter();
 				paymentAfter.setHouse(new House(houseId));
-				paymentAfter.setUser(u);
-				paymentAfter.setReceDate(receD);
+//				paymentAfter.setUser(u);
+//				paymentAfter.setReceDate(receD);
 
 				paymentAfter.setId(null);
-				paymentAfter.setPayemtDetailId(new Long(id));
-				paymentAfter.setType("2");    //1 预付   2现付
-				paymentAfter.setPayType(payType);  //代扣
-				paymentAfter.setFeedName(feedName);
-				paymentAfter.setFeeCode(StringUtils.getNullValue(feeCode, ""));
-				paymentAfter.setCertCode(StringUtils.getNullValue(certCode, ""));
-				paymentAfter.setCostMoney(new BigDecimal(costMoney2)); //应付金额
+//				paymentAfter.setPayemtDetailId(new Long(id));
+				paymentAfter.getDeviceDetailList().add(new DeviceDetail(id));
+				
+//				paymentAfter.setType("2");    //1 预付   2现付
+//				paymentAfter.setPayType(payType);  //代扣
+//				paymentAfter.setFeedName(feedName);
+//				paymentAfter.setFeeCode(StringUtils.getNullValue(feeCode, ""));
+//				paymentAfter.setCertCode(StringUtils.getNullValue(certCode, ""));
+//				paymentAfter.setCostMoney(new BigDecimal(costMoney2)); //应付金额
 				paymentAfter.setRecMoney(new BigDecimal(incomeMoney2)); //实收金额
 				paymentAfterService.save(paymentAfter);	
 			}

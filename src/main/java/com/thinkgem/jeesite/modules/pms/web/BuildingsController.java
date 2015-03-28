@@ -5,6 +5,7 @@ package com.thinkgem.jeesite.modules.pms.web;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import com.google.common.collect.Maps;
 import com.thinkgem.jeesite.common.beanvalidator.BeanValidators;
 import com.thinkgem.jeesite.common.config.Global;
 import com.thinkgem.jeesite.common.persistence.Page;
+import com.thinkgem.jeesite.common.utils.CacheUtils;
 import com.thinkgem.jeesite.common.utils.DateUtils;
 import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.common.utils.excel.ExportExcel;
@@ -42,9 +44,9 @@ import com.thinkgem.jeesite.modules.pms.service.BuildingsService;
 import com.thinkgem.jeesite.modules.pms.service.CommunityService;
 import com.thinkgem.jeesite.modules.pms.service.HouseService;
 import com.thinkgem.jeesite.modules.pms.service.UnitService;
+import com.thinkgem.jeesite.modules.pms.utils.HouseUtils;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.User;
-import com.thinkgem.jeesite.modules.sys.service.OfficeService;
 import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
 
 /**
@@ -296,7 +298,11 @@ public class BuildingsController extends BaseController {
 	  		
 	  		if("device".endsWith(model)){
 	  			communityId = request.getParameter("house.unit.buildings.community.id"); 
-	    	}  		
+	    	}  
+	  		
+	  		if("deviceDetail".endsWith(model)){
+	  			communityId = request.getParameter("device.house.unit.buildings.community.id"); 
+	    	}  	
 	  		
 	  		
 			response.setContentType("application/json; charset=UTF-8");
@@ -324,49 +330,75 @@ public class BuildingsController extends BaseController {
  		@RequiresUser
  		@ResponseBody
  		@RequestMapping(value = "treeData")
- 		public List<Map<String, Object>> treeData(@RequestParam(required=false) String proCompanyId,@RequestParam(required=false) Long Level, HttpServletResponse response) {
- 			
+ 		public List<Map<String, Object>> treeData(@RequestParam(required=false) String proCompanyId,@RequestParam(required=false) String deviceId,@RequestParam(required=false) Long Level,@RequestParam(required=false) String module, HttpServletResponse response) {
+ 			Map<String,House> mp = new HashMap<String,House>();
+ 			boolean isCheckedHouse = deviceId !=null && StringUtils.isNotBlank(deviceId);
  			int nodeLevel = Level.intValue();
  			
- 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>Level                    >>>"+Level);
- 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>proCompanyId                    >>>"+proCompanyId);
+ 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>Level    1111111111                >>>"+Level);
+ 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>proCompanyId      222222              >>>"+proCompanyId);
+ 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>deviceId      33333333                   >>>"+deviceId);
+ 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>module      33333333                   >>>"+module);
+// 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>checked      33333333                   >>>"+checked);
  			
  			
- 			
- 			
+ 			if(isCheckedHouse){
+ 	 			List<House> houseList = houseService.findHouseByDevice(deviceId);
+ 	 			
+ 	 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>houseList    houseList 33333333                   >>>"+houseList.size());
+ 	 			
+ 	 			for(House h:houseList){
+ 	 				mp.put(h.getId(), h);
+ 	 			}		
+ 			}
+
 // 			int level = nodesLevel.intValue();
 
  			response.setContentType("application/json; charset=UTF-8");
  			
- 			List<Map<String, Object>> mapList = Lists.newArrayList();
  			
- 		
- 			if(proCompanyId != null && StringUtils.isNotEmpty(proCompanyId) && !"undefined".equals(proCompanyId)){
- 				return   getCommunity(nodeLevel,proCompanyId);
+ 			
+ 			List<Map<String, Object>> map2 = (List<Map<String, Object>>)CacheUtils.get(HouseUtils.CACHE_HOUSE_TREE_MAP);
+ 			List<Map<String, Object>> mapList = Lists.newArrayList();
+ 			module = StringUtils.getNullValue(module, "0");
+ 			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>module      33333333                   >>>"+module);
+ 			if(map2 == null || "1,".equals(module)){
+// 				Map<String, List<Map<String, Object>>> map22 =Maps.newHashMap();
+ 				if(proCompanyId != null && StringUtils.isNotEmpty(proCompanyId) && !"undefined".equals(proCompanyId)){
+ 					mapList =   getCommunity(nodeLevel,proCompanyId,mp);
+ 					CacheUtils.put(HouseUtils.CACHE_HOUSE_TREE_MAP, mapList);
+ 			
+ 	 			}else{
+ 	 	 			List<Office> list = UserUtils.findProCompanyList();
+ 	 	 			for (int i=0; i<list.size(); i++){
+ 	 	 				Office e = list.get(i);
+ 	 					Map<String, Object> map = Maps.newHashMap();
+ 	 					map.put("id", "ProCompany"+e.getId());
+ 	 					map.put("name", e.getName());
+ 	 					
+ 	 					if(nodeLevel > 0){
+ 	 						List<Map<String, Object>> chList =  getCommunity(nodeLevel,e.getId(),mp);
+ 	 						if(chList.size() >0 ){
+ 	 							map.put("isParent", true);
+ 	 							map.put("children",chList);
+// 	 							if(mp.size()>0) map.put("checked", true);
+ 	 						}	
+ 	 					}
+ 	 					mapList.add(map);
+ 	 	 			
+ 	 	 			}	
+ 	 	 			CacheUtils.put(HouseUtils.CACHE_HOUSE_TREE_MAP, mapList);
+ 	 	 						
+ 	 			}
  			}else{
- 	 			List<Office> list = UserUtils.findProCompanyList();
- 	 			for (int i=0; i<list.size(); i++){
- 	 				Office e = list.get(i);
- 					Map<String, Object> map = Maps.newHashMap();
- 					map.put("id", "ProCompany"+e.getId());
- 					map.put("name", e.getName());
- 					
- 					if(nodeLevel > 0){
- 						List<Map<String, Object>> chList =  getCommunity(nodeLevel,e.getId());
- 						if(chList.size() >0 ){
- 							map.put("isParent", true);
- 							map.put("children",chList);
- 						}	
- 					}
- 					mapList.add(map);
- 	 			
- 	 			}	
- 	 			return mapList;				
+ 				mapList = map2;
  			}
+ 			
+ 			return mapList;	
 
  		}
  		
- 		public  List<Map<String, Object>>getCommunity(int nodeLevel,String proCompanyId){
+ 		public  List<Map<String, Object>>getCommunity(int nodeLevel,String proCompanyId,Map<String,House> mp){
  			List<Map<String, Object>> mapList = Lists.newArrayList();
 
  			Community community = new Community();
@@ -381,11 +413,12 @@ public class BuildingsController extends BaseController {
 				map.put("name", e.getName());
 
 				if(nodeLevel > 1){
-					List<Map<String, Object>> chList = getBuildings(nodeLevel,e.getId());
+					List<Map<String, Object>> chList = getBuildings(nodeLevel,e.getId(),mp);
 					if(chList.size() >0 ){
 						map.put("isParent", true);
 //						map.put("disabled", true);
 						map.put("children",chList);
+//						if(mp.size()>0) map.put("checked", true);
 					}	
 				}
 	
@@ -396,7 +429,7 @@ public class BuildingsController extends BaseController {
  		}
  		
  		
- 		public  List<Map<String, Object>>getBuildings(int nodeLevel,String communityId){
+ 		public  List<Map<String, Object>>getBuildings(int nodeLevel,String communityId,Map<String,House> mp){
  			List<Map<String, Object>> mapList = Lists.newArrayList();
  			Community community = new Community();
  			Buildings buildings = new Buildings();
@@ -410,11 +443,12 @@ public class BuildingsController extends BaseController {
 				map.put("name", e.getName());
 				
 				if(nodeLevel > 2){
-					List<Map<String, Object>> chList =getUnit(nodeLevel,e.getId());
+					List<Map<String, Object>> chList =getUnit(nodeLevel,e.getId(),mp);
 					if(chList.size() >0 ){
 						map.put("isParent", true);
 //						map.put("disabled", true);
 						map.put("children",chList);
+//						if(mp.size()>0) map.put("checked", true);
 					}	
 				}			
 				mapList.add(map);
@@ -422,7 +456,7 @@ public class BuildingsController extends BaseController {
  			return mapList;
  		}
  		
- 		public  List<Map<String, Object>>getUnit(int nodeLevel,String buildingsId){
+ 		public  List<Map<String, Object>>getUnit(int nodeLevel,String buildingsId,Map<String,House> mp){
  			List<Map<String, Object>> mapList = Lists.newArrayList();
  			
  			Buildings buildings = new Buildings();
@@ -437,10 +471,11 @@ public class BuildingsController extends BaseController {
 				map.put("name", e.getName());
 				
 				if(nodeLevel > 3){
-					List<Map<String, Object>> chList = getHouse(nodeLevel,e.getId());
+					List<Map<String, Object>> chList = getHouse(nodeLevel,e.getId(),mp);
 					if(chList.size() >0 ){
 						map.put("isParent", true);
 						map.put("children",chList);
+//						if(mp.size()>0) map.put("checked", true);
 					}	
 				}					
 
@@ -449,7 +484,7 @@ public class BuildingsController extends BaseController {
  			return mapList;
  		}
  		
- 		public  List<Map<String, Object>>getHouse(int nodeLevel,String unitId){
+ 		public  List<Map<String, Object>>getHouse(int nodeLevel,String unitId,Map<String,House> mp){
  			List<Map<String, Object>> mapList = Lists.newArrayList();
  			
  			House house = new House();
@@ -461,10 +496,14 @@ public class BuildingsController extends BaseController {
  			for(House e : houseList){
  				Map<String, Object> map = Maps.newHashMap();
  				User owner = e.getOwner();
- 				map.put("id", "House"+e.getId());
- 				String name = e.getName();
+ 				String key = e.getId();
+ 				map.put("id", "House"+key);
+ 				String numFloor = e.getNumFloor();
+ 				String name = numFloor+"层"+e.getName();
  				if(owner != null) name = name + "("+owner.getName()+")";
 				map.put("name", name);
+				boolean  checked = mp.containsKey(key);
+				map.put("checked", checked);
 				mapList.add(map);
  			}
  			return mapList;

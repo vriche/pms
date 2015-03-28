@@ -3,6 +3,8 @@
  */
 package com.thinkgem.jeesite.modules.pms.web;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,9 +35,13 @@ import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.common.utils.excel.ExportExcel;
 import com.thinkgem.jeesite.common.utils.excel.ImportExcel;
 import com.thinkgem.jeesite.common.web.BaseController;
+import com.thinkgem.jeesite.modules.pms.entity.Community;
 import com.thinkgem.jeesite.modules.pms.entity.Device;
+import com.thinkgem.jeesite.modules.pms.entity.DeviceDetail;
 import com.thinkgem.jeesite.modules.pms.entity.Fees;
 import com.thinkgem.jeesite.modules.pms.entity.House;
+import com.thinkgem.jeesite.modules.pms.service.CommunityService;
+import com.thinkgem.jeesite.modules.pms.service.DeviceDetailService;
 import com.thinkgem.jeesite.modules.pms.service.DeviceService;
 import com.thinkgem.jeesite.modules.pms.service.FeesService;
 import com.thinkgem.jeesite.modules.pms.service.HouseService;
@@ -62,9 +67,14 @@ public class DeviceController extends BaseController {
 	@Autowired
 	private DeviceService deviceService;
 	@Autowired
+	private DeviceDetailService deviceDetailService;
+	@Autowired
 	private FeesService feesService;
 	@Autowired
 	private HouseService houseService;
+	@Autowired
+	private CommunityService communityService;
+	
 	
 	
 	private boolean isNewExcel =  com.thinkgem.jeesite.common.config.Global.getOfficeVersion();
@@ -81,78 +91,106 @@ public class DeviceController extends BaseController {
 //	@RequiresPermissions("pms:device:view")
 	@RequestMapping(value = {"list", ""})
 	public String list(Device device, HttpServletRequest request, HttpServletResponse response, Model model) {
-		User user = UserUtils.getUser();
-		if (!user.isAdmin()){
-			device.setCreateBy(user);
-		}
-		
-		
-//		 String proCompanyId = request.getParameter("fees.company.id");
-//		 List<Office> companyList = UserUtils.findProCompanyList();
-//		 Office proCompany = null;
-//		 if (StringUtils.isBlank(proCompanyId) && companyList.size() >0){
-//			 proCompany = companyList.get(0);
-//		 }else{
-//			 proCompany = new Office(proCompanyId);
-//		 }
-//		 Fees fees = new Fees();
-//		 fees.setCompany(proCompany);
-//		 device.setFees(fees);	 
+//		User user = UserUtils.getUser();
+//		if (!user.isAdmin()){
+//			device.setCreateBy(user);
+//		}
+		DeviceUtils.getObjFromReq(device,request,response,model,1);
+		device.setEnable(null);
+        Page<Device> page = deviceService.findPage(new Page<Device>(request, response), device);
 
-		
-		if(device.getType() == null){
-			device.setType("1");
-		}
-		
-		device.setLastDate(null);
-		device.setFirstDate(null);
-		device.setPaymentDate(null);
-		
-		String m = "3".equals(device.getType())?"1":"0";
-		if("2".equals(device.getType())) m = "2";
-		
-		device.setModel(m);
-		device.setPool(null);
-		
-		DeviceUtils.setObjFromReq(device,  request,  null,  model,1);
-		
-        Page<Device> page = deviceService.find(new Page<Device>(request, response), device);
-        
-//        model.addAttribute("proCompanyList", companyList);
         model.addAttribute("page", page);
 		return "modules/pms/deviceList";
 	}
 	
 
+	 @RequestMapping(value = "initDevice", method=RequestMethod.POST)
+	public String initDevice(Device device, HttpServletRequest request, HttpServletResponse response, Model model) {
+		
+		 Office proCompany = device.getFees().getCompany();
+		String proCompanyId = proCompany.getId();
+		
+		
+		User user = UserUtils.getUser();
+		if (!user.isAdmin()){
+			device.setCreateBy(user);
+		}
+
+		System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>111111111111111111111111");
+		
+		DeviceUtils.getObjFromReq(device,request,response,model,1);
+		
+		System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>2222222222222222222222222");
+        Page<Device> pageTemp = deviceService.findPage(new Page<Device>(request, response,-1), device);
+        System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>33333333333333333");
+        List<Device> lsAll = pageTemp.getList();
+
+		String deviceType = device.getType();
+		int size = lsAll.size();
+		
+		
+//		 String proCompanyId = device.getFees().getCompany().getId();
+		 Fees  fees = feesService.get(device.getFees().getId());
+		 System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>4444444444444");
+		 String feesCode = fees.getCode();
+		 BigDecimal unitPrice = fees.getUnitPrice();
+		 String feesMode = fees.getFeesMode();
+		 
+		//初始化公摊设备，小区名 +费用
+		if("1".equals(deviceType)){
+			 System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>5555555555");
+			 List<Community> communityList = communityService.findAllCommunityByProCompanyId(proCompanyId);
+			 System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>666666666");
+			int communitySize = communityList.size();
+			if(communitySize >0 && size ==0){
+				for(Community community:communityList){
+					String communityName = community.getName();
+					System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>7777777777"+communityName);
+					if(!"单位".equals(communityName)){
+						System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>8888888");
+						String communityId =  community.getId();
+						Device dev = new Device();
+						dev.setFees(fees);
+						dev.setHouse(new House("0"));
+						dev.setParent(new Device("0"));
+						dev.setEnable("1");
+						dev.setCode(communityName+"_"+feesCode);
+						dev.setName(communityId+"_"+fees.getId());
+						dev.setFirstDate(DateUtils.parseDate("1900-01-01"));
+						dev.setLastDate(DateUtils.parseDate("1900-01-01"));
+						dev.setPaymentDate(DateUtils.parseDate("1900-01-01"));
+						System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>unitPrice"+unitPrice);
+						dev.setUnitPrice(unitPrice);
+						dev.setType(deviceType);
+						dev.setFeesMode(feesMode);
+						dev.setChildList(new ArrayList<Device>());
+						System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>9999999999");
+						BeanValidators.validateWithException(validator, dev);
+						System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>AAAAAAAAAAAAA");
+						deviceService.saveDetail(dev);
+						System.out.println(">>>>>>>>>>>>>>>>>>>initDevice>>>>>>>>>>>>>>>>>>>>>>>>BBBBBBBBBBBB");
+						
+					}
+
+				}
+			}
+			 
+		}
+		if("2".equals(deviceType)){
+			List<Office> companyList = UserUtils.findCompanyListByProCompany(proCompanyId);
+		}
+		if("3".equals(deviceType)){
+			
+		}
+	
+
+        Page<Device> page = deviceService.findPage(new Page<Device>(request, response), device);
+        model.addAttribute("page", page);
+		return "modules/pms/deviceList";
+	}
 
 	
-	
-//	@RequiresPermissions("pms:device:view")
-//	@RequestMapping(value = {"pool", ""})
-//	public String pool(Device device, HttpServletRequest request, HttpServletResponse response, Model model) {
-//		User user = UserUtils.getUser();
-//		if (!user.isAdmin()){
-//			device.setCreateBy(user);
-//		}
-//		
-//		if(device.getType() == null){
-//			device.setType("1");
-//		}
-//		
-//
-//		
-//        Page<Device> page = deviceService.find(new Page<Device>(request, response), device);
-//        
-//		Device d = new Device();
-//		d.setType("1");
-//		model.addAttribute("parentList", deviceService.find(d));
-//        
-//        model.addAttribute("proCompanyList", officeService.findProCompanyList());
-//        model.addAttribute("page", page);
-//		return "modules/pms/devicePoolList";
-//	}	
-	
-	
+
 
 //	@RequiresPermissions("pms:device:view")
 	@RequestMapping(value = "form")
@@ -167,9 +205,12 @@ public class DeviceController extends BaseController {
 		
 		Device d = new Device();
 		d.setType("1");
+		
+		 List<Office> companyList = UserUtils.findProCompanyList();
+		 
 		model.addAttribute("parentList", deviceService.find(d));
 		
-		model.addAttribute("proCompanyList", UserUtils.findProCompanyList());
+		model.addAttribute("proCompanyList", companyList);
 		
 		 String proCompanyId ="";
 		 if(device.getFees() != null){
@@ -178,8 +219,6 @@ public class DeviceController extends BaseController {
 			 }	 
 		 }
 
-		 
-		 List<Office> companyList = UserUtils.findProCompanyList();
 		 Office proCompany = null;
 		 if (StringUtils.isBlank(proCompanyId) && companyList.size() >0){
 			 proCompany = companyList.get(0);
@@ -206,37 +245,43 @@ public class DeviceController extends BaseController {
 //	@RequiresPermissions("pms:device:edit")
 	@RequestMapping(value = "save")
 	public String save(Device device, Model model, HttpServletRequest request,RedirectAttributes redirectAttributes) {
-//		if (!beanValidator(model, device)){
-//			return form(device, model);
-//		}
+
 		
 
 //		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getHouse() 1111111111111111 >>>>>>>>>>>>>>>>>>>>>>>>"+ request.getParameter("houseId"));
 //		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getHouse() 666666666666666666 >>>>>>>>>>>>>>>>>>>>>>>>"+ request.getParameter("a"));
 //		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getHouse() 777 >>>>>>>>>>>>>>>>>>>>>>>>"+ model.asMap().get("a"));
-		
-	
-			String houseId =  request.getParameter("houseId");
-			if(StringUtils.isBlank(houseId)){houseId = "0";}
-			
-//			System.out.println(">>>>>>>>>>>>>>>>>>>> device.getHouse() 77777777777777777777 >>>>>>>>>>>>>>>>>>>>>>>>"+ houseId);
-			
-			House house = HouseUtils.getHouse(houseId);
-			
-//			System.out.println(">>>>>>>>>>>>>>>>>>>> device.getHouse() 8888888888888888 >>>>>>>>>>>>>>>>>>>>>>>>"+ house);
-			
-			device.setHouse(house);
-			
+		Fees fees = device.getFees();
+		String deviceType = device.getType();
+		String houseId = request.getParameter("houseId");
 
+		if(device.getParent() == null || (device.getParent() != null && StringUtils.isBlank(device.getParent().getId()))){
+			device.setParent(new Device("0"));
+		}
+		
+		if (StringUtils.isBlank(houseId) || "1".equals(deviceType)) {
+			houseId = "0";
+		}
+		House house = HouseUtils.getHouse(houseId);
+		device.setHouse(house);
+		
+		
+		if (!beanValidator(model, device)){
+			return form(device, model);
+		}
+			
+		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getHouse() 777 >>>>>>>>>>>>>>>>>>>>>>>>"+ house);
 		deviceService.save(device);
 		addMessage(redirectAttributes, "保存单元信息'" + device.getName() + "'成功");
+		
 		redirectAttributes.addAttribute("fees.company.id", device.getFees().getCompany().getId());
-		redirectAttributes.addAttribute("type", device.getType());
-		if(!"1".equals(device.getType())){
+		redirectAttributes.addAttribute("type", deviceType);
+		redirectAttributes.addAttribute("fees.id", fees.getId());
+		if(!"1".equals(deviceType)){
 			redirectAttributes.addAttribute("house.unit.buildings.community.id", house.getUnit().getBuildings().getCommunity().getId());
 			redirectAttributes.addAttribute("house.unit.buildings.id", house.getUnit().getBuildings().getId());
 			redirectAttributes.addAttribute("house.unit.id", house.getUnit().getId());
-			redirectAttributes.addAttribute("house.id", house.getId());
+//			redirectAttributes.addAttribute("house.id", house.getId());
 		}
 
 		
@@ -245,10 +290,19 @@ public class DeviceController extends BaseController {
 	
 
 //	@RequiresPermissions("pms:device:edit")
-	@RequestMapping(value = "delete")
-	public String delete(String id, RedirectAttributes redirectAttributes) {
+	@RequestMapping(value = "delete" , method=RequestMethod.GET)
+	public String delete(String id, String proCompanyId,String type,String feesId,RedirectAttributes redirectAttributes) {
 		deviceService.delete(id);
 		addMessage(redirectAttributes, "删除单元信息成功");
+	
+
+		 Fees fees = new Fees();
+		 fees.setCompany(new Office(proCompanyId));
+
+		redirectAttributes.addAttribute("fees.company.id", proCompanyId);
+		redirectAttributes.addAttribute("type", type);
+		redirectAttributes.addAttribute("fees.id", feesId);
+
 		return "redirect:"+Global.getAdminPath()+"/pms/device/?repage";
 	}
 	
@@ -340,12 +394,6 @@ public class DeviceController extends BaseController {
 		String deviceTypeName= DictUtils.getLable("pms_device_type", deviceType);
 		String feesName = StringUtils.getNullValue(fees.getName(), "");
 		
-		
-//		System.out.println(">>>>>>>>>>>>>>>>>>>>>feesId 11111>>>>>>>>>>>>>>>>>>>>>>"+ fees.getFeesMode());
-//		System.out.println(">>>>>>>>>>>>>>>>>>>>>feesId 22222>>>>>>>>>>>>>>>>>>>>>>"+ deviceTypeName);
-//		System.out.println(">>>>>>>>>>>>>>>>>>>>>feesId 3333>>>>>>>>>>>>>>>>>>>>>>"+ feesId);
-//		System.out.println(">>>>>>>>>>>>>>>>>>>>>proCompanyName 11111>>>>>>>>>>>>>>>>>>>>>>"+ proCompanyName);
-		
 		String titleMain = proCompanyName ;
 		String titleSub = "收费项目("+curDateStr+deviceTypeName + feesName + ")";
 		String title = titleMain + titleSub;
@@ -368,6 +416,7 @@ public class DeviceController extends BaseController {
     		device.setPaymentDate(null);
     		device.setModel(m);
     		device.setPool(null);
+    		device.setUnitPrice(null);
     		
     	
     		DeviceUtils.setObjFromReq(device,  request,  null,  null,1);
@@ -375,27 +424,32 @@ public class DeviceController extends BaseController {
     		List<Device> ls = deviceService.findAll(device);
     		long end = System.currentTimeMillis();
     		
-    		System.out.println(">>>>>>>>>>>>>>>>>>>>>exportFile use times>>>>>>>>>>>>>>>>>>>>>>>>>"+ (end-start)/1000);
+    
     		
     		for (Device dev : ls){
     			dev.setFirstNumStr(dev.getLastNum());
-    			dev.setFirsDateStr(dev.getLastDate());
-    			dev.setCurPaymentDateStr(DateUtils.parseDate(DateUtils.formatDate(dev.getPaymentDate())));
-//    			dev.setCurPaymentDateStr(DateUtils.parseDate(DateUtils.formatDate(DateUtils.addDays(new Date(),30), "yyyy-MM-dd HH:mm:ss")));
-//    			dev.setCurNumStr(null);
-    			dev.setCurDateStr(DateUtils.parseDate(DateUtils.getDate()+" 00:00:00"));
+    			dev.setFirsDateStr(DateUtils.formatDate(dev.getLastDate()));
+    			Date paymentDate = dev.getPaymentDate();
+    			if(paymentDate == null){
+    				dev.setCurPaymentDateStr(DateUtils.parseDate(DateUtils.getDate()+" 00:00:00"));
+    			}else{
+    				dev.setCurPaymentDateStr(DateUtils.parseDate(DateUtils.formatDate(dev.getPaymentDate())));
+    			}
+    			
+    			double unitPrice = Double.valueOf(StringUtils.getNullValue(dev.getUnitPrice(), "0"));
+    			if(unitPrice == 0){dev.setUnitPrice(dev.getFees().getUnitPrice());}
+//    			dev.setCurDateStr(DateUtils.parseDate(DateUtils.getDate()+" 00:00:00"));
+    			dev.setCurDateStr(DateUtils.getDate());
+
     		
     		}
-  
-//    		System.out.println(">>>>>>>>>>>>>>>>>>>>>exportFile 1111111111 1111111111 >>>>>>>>>>> id >>>>>>>>>>>>>>>>>>>>>>>>>>"+ ls.size());
-        	
-    		
     		new ExportExcel(title, Device.class).setDataList(ls).write(response, fileName).dispose();
+    		
     		return null;
 		} catch (Exception e) {
 			addMessage(redirectAttributes, "导出"+ title +"失败！失败信息："+e.getMessage());
 		}
-		return "redirect:"+Global.getAdminPath()+"/pms/user/?repage";
+		return "redirect:"+Global.getAdminPath()+"/pms/device/?repage";
     }
     
     
@@ -413,7 +467,7 @@ public class DeviceController extends BaseController {
 //		int deviceType = Integer.parseInt(device.getType());
 //				
 //		 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>file"+file);
-//		 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>proCompanyId"+ deviceType);
+//		 System.out.println("111111111111111111111111111111111  66666666666666666666       >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>proCompanyId");
 		try {
 			int successNum = 0;
 			int failureNum = 0;
@@ -435,21 +489,26 @@ public class DeviceController extends BaseController {
 						
 						if(deviceDb != null){
 //							String devType = dev.getType();
-							System.out.println(" getId>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getId());
-//							System.out.println(" getType>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getType());
-							System.out.println(" getFirstNum>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getFirstNumStr());
-							System.out.println(" getLastNum>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getCurNumStr());
-							System.out.println(" getUsageAmount>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getUsageAmount());
-							System.out.println(" getPoolUsageAmount>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getPoolUsageAmount());
-							System.out.println(" getLastDate>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getLastDate());
-							System.out.println(" getPaymentDate>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getPaymentDate());
+//							System.out.println(" getId>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getId());
+////							System.out.println(" getType>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getType());
+//							System.out.println(" getFirstNum>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getFirstNumStr());
+//							System.out.println(" getLastNum>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getCurNumStr());
+//							System.out.println(" getUsageAmount>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getUsageAmount());
+//							System.out.println(" getPoolUsageAmount>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getPoolUsageAmount());
+//							System.out.println(" getLastDate>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getLastDate());
+//							System.out.println(" getPaymentDate>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+dev.getPaymentDate());
 							
 							deviceDb.setFirstNum(dev.getFirstNumStr());
 							deviceDb.setLastNum(dev.getCurNumStr());
-							deviceDb.setFirstDate(dev.getFirsDateStr());
+							deviceDb.setFirstDate(DateUtils.parseDate(dev.getFirsDateStr()));
 //							deviceDb.setLastDate(dev.getCurDateStr());
-							deviceDb.setLastDate(dev.getFirsDateStr());
-							deviceDb.setPaymentDate(dev.getCurPaymentDateStr());
+//							dev.setCurDateStr(DateUtils.parseDate(DateUtils.getDate()+" 00:00:00"));
+							
+							Date curDate = DateUtils.parseDate(dev.getCurDateStr(), new String[]{"yyyy-MM-dd"});
+							
+							deviceDb.setLastDate(curDate);
+							deviceDb.setPaymentDate(curDate);
+							deviceDb.setUnitPrice(dev.getUnitPrice());
 							
 //							deviceDb.setLastDate(dev.getLastDate());
 //							deviceDb.setPaymentDate(dev.getPaymentDate());
@@ -484,11 +543,85 @@ public class DeviceController extends BaseController {
 							deviceDb.setPoolUsageAmount(StringUtils.toBigDecimal(dev.getPoolUsageAmount()));
 							
 							
+							double  sumPayMoney =  Double.parseDouble(StringUtils.getNullValue(dev.getSumPayMoney(), "0"));
+							deviceDb.setSumPayMoney(StringUtils.toBigDecimal(sumPayMoney));
+							
+//							if(sumPayMoney >0){
+//								
+//							}
+							
+							
 							
 							
 							try{
+								
+//								System.out.println("deviceDb>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+deviceDb.toString());
+								
 								BeanValidators.validateWithException(validator, deviceDb);
+
 								deviceService.saveDetail(deviceDb);
+		
+								DeviceDetail deviceDetail = new DeviceDetail();
+								
+								deviceDetail.setDevice(deviceDb);
+								
+//								System.out.println("deviceDetail.getLastDate()>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+deviceDetail.getLastDate());
+								
+								List<DeviceDetail> ls = deviceDetailService.find(deviceDetail);
+//								
+//								System.out.println("ls.size()>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+ls.size());
+								
+								
+								if(ls.size() >0){
+									DeviceDetail dtail = ls.get(0);
+									deviceDetail.setId(dtail.getId());
+//									deviceDetail.setFeesMode(deviceDb.getFeesMode());
+//									deviceDetail.setUnitPrice(deviceDb.getUnitPrice());
+//									deviceDetail.setFirstDate(deviceDb.getFirstDate());
+//									deviceDetail.setLastDate(deviceDb.getLastDate());
+//									deviceDetail.setFirstNum(deviceDb.getFirstNum());
+//									deviceDetail.setLastNum(deviceDb.getLastNum());
+//									deviceDetail.setPaymentDate(deviceDb.getPaymentDate());
+//									deviceDetail.setUsageAmount(deviceDb.getUsageAmount());
+//									deviceDetail.setPoolUsageAmount(deviceDb.getPoolUsageAmount());
+//									deviceDetail.setPoolPayMoney(deviceDb.getPoolPayMoney());
+//									deviceDetail.setSumUsageAmount(deviceDb.getSumUsageAmount());
+//									deviceDetail.setSumPayMoney(deviceDb.getSumPayMoney());
+//									deviceDetail.setUnitPrice(deviceDb.getUnitPrice());
+								}else{
+//									deviceDetail.setFeesMode(deviceDb.getFeesMode());
+//									deviceDetail.setUnitPrice(deviceDb.getUnitPrice());
+//									deviceDetail.setFirstDate(deviceDb.getFirstDate());
+//									deviceDetail.setLastDate(deviceDb.getLastDate());
+//									deviceDetail.setFirstNum(deviceDb.getFirstNum());
+//									deviceDetail.setLastNum(deviceDb.getLastNum());
+//									deviceDetail.setPaymentDate(deviceDb.getPaymentDate());
+//									deviceDetail.setUsageAmount(deviceDb.getUsageAmount());
+//									deviceDetail.setPoolUsageAmount(deviceDb.getPoolUsageAmount());
+//									deviceDetail.setPoolPayMoney(deviceDb.getPoolPayMoney());
+//									deviceDetail.setSumUsageAmount(deviceDb.getSumUsageAmount());
+//									deviceDetail.setSumPayMoney(deviceDb.getSumPayMoney());
+//									deviceDetail.setUnitPrice(deviceDb.getUnitPrice());
+								}
+								
+								deviceDetail.setFeesMode(deviceDb.getFeesMode());
+								deviceDetail.setUnitPrice(deviceDb.getUnitPrice());
+								deviceDetail.setFirstDate(deviceDb.getFirstDate());
+								deviceDetail.setLastDate(deviceDb.getLastDate());
+								deviceDetail.setFirstNum(deviceDb.getFirstNum());
+								deviceDetail.setLastNum(deviceDb.getLastNum());
+								deviceDetail.setPaymentDate(deviceDb.getPaymentDate());
+								deviceDetail.setUsageAmount(deviceDb.getUsageAmount());
+								deviceDetail.setPoolUsageAmount(deviceDb.getPoolUsageAmount());
+								deviceDetail.setPoolPayMoney(deviceDb.getPoolPayMoney());
+								deviceDetail.setSumUsageAmount(deviceDb.getSumUsageAmount());
+								deviceDetail.setSumPayMoney(deviceDb.getSumPayMoney());
+								deviceDetail.setUnitPrice(deviceDb.getUnitPrice());
+								deviceDetail.setParent(new Device(deviceDb.getParent().getId()));
+					
+								
+								deviceDetailService.save(deviceDetail);
+								
 								successNum++;
 							}catch(ConstraintViolationException ex){
 								failureMsg.append("<br/>序号为（"+id+"） 导入失败：");
@@ -534,92 +667,11 @@ public class DeviceController extends BaseController {
 		
 		
 		
-		 
-		
-//		try {
-//			int successNum = 0;
-//			int failureNum = 0;
-//			StringBuilder failureMsg = new StringBuilder();
-//			
-//			ImportExcel ei = new ImportExcel(file, 1, 0);
-//			
-//			
-//			List<Device> list = ei.getDataList(Device.class);
-//			
-//		
-//			for (Device dev : list){
-//				try{
-//					 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3"+device.getName());
-//					 
-//					 Device devParam = new Device();
-//					 devParam.setId(dev.getDeviceIdStr());
-//					 List<Device> ls =  deviceService.find(devParam);
-//					 
-//					 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>4>>>>>>"+ls.size());
-//					 
-//					 if(ls.size() > 0){
-//						 for (Device devNew : ls){
-//
-//								BeanValidators.validateWithException(validator, devNew);
-////								deviceService.save(devNew);
-//								successNum++;
-//						 }
-//					 }else{
-//							failureMsg.append("<br/>公司名1 "+" 已存在; ");
-//							failureNum++;
-//					 }
-//				
-//	
-//				}catch(ConstraintViolationException ex){
-//					failureMsg.append("<br/>公司名2 "+" 导入失败：");
-//					List<String> messageList = BeanValidators.extractPropertyAndMessageAsList(ex, ": ");
-//					for (String message : messageList){
-//						failureMsg.append(message+"; ");
-//						failureNum++;
-//					}
-//				}catch (Exception ex) {
-//					failureMsg.append("<br/>公司名3 "+" 导入失败："+ex.getMessage());
-//				}
-//			}
-//			if (failureNum>0){
-//				failureMsg.insert(0, "，失败 "+failureNum+" 条公司名，导入信息如下：");
-//			}
-//			addMessage(redirectAttributes, "已成功导入 "+successNum+" 条公司名"+failureMsg);
-//		} catch (Exception e) {
-//			addMessage(redirectAttributes, "导入公司5名失败！失败信息："+e.getMessage());
-//		}
+
 		return "redirect:"+Global.getAdminPath()+"/pms/device/?repage";
 //		return null;
     }
     
     
 	
-//	public Map<String, List<Device>> getDevicesJson(String model,HttpServletRequest request, HttpServletResponse response) {
-//
-//    	String houserId = null;
-//    	response.setContentType("application/json; charset=UTF-8");
-// 
-//		
-//    	if("house".endsWith(model)){
-//    		houserId = request.getParameter("houserId");
-//    	} 
-//    	
-//
-//    	System.out.println(">>>>>>>>>>>>>>>>>>>>>getDevicesJson>>>>>>>>>>> houserId >>>>>>>>>>>>>>>>>>>>>>>>>>"+houserId);
-//  		
-//    	
-//		Device device = new Device();
-//		List<House> houseList =  Lists.newArrayList();
-//		device.setHouseList(houseList);
-//		List<Device> list = deviceService.find(device);
-//		
-//		System.out.println(">>>>>>>>>>>>>>>>>>>>>getDevicesJson>>>>>>>>>>> Device list.size()>>>>>>>>>>>>>>>>>>>>>>>>>>"+list.size());
-//		
-//		Map<String, List<Device>> map = Maps.newHashMap();
-//		
-////		map.put("Total", String.valueOf(2));
-//		map.put("results", list);
-//		return map;
-//	}
-
 }

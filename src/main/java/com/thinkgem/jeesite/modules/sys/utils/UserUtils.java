@@ -5,12 +5,9 @@
  */
 package com.thinkgem.jeesite.modules.sys.utils;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.UnavailableSecurityManagerException;
@@ -24,7 +21,6 @@ import org.hibernate.sql.JoinType;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.thinkgem.jeesite.common.service.BaseService;
-import com.thinkgem.jeesite.common.utils.Reflections;
 import com.thinkgem.jeesite.common.utils.SpringContextHolder;
 import com.thinkgem.jeesite.modules.sys.dao.AreaDao;
 import com.thinkgem.jeesite.modules.sys.dao.MenuDao;
@@ -32,6 +28,7 @@ import com.thinkgem.jeesite.modules.sys.dao.OfficeDao;
 import com.thinkgem.jeesite.modules.sys.dao.RoleDao;
 import com.thinkgem.jeesite.modules.sys.dao.UserDao;
 import com.thinkgem.jeesite.modules.sys.entity.Area;
+import com.thinkgem.jeesite.modules.sys.entity.Dict;
 import com.thinkgem.jeesite.modules.sys.entity.Menu;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.Role;
@@ -58,6 +55,12 @@ public class UserUtils extends BaseService {
 	public static final String CACHE_MENU_LIST = "menuList";
 	public static final String CACHE_AREA_LIST = "areaList";
 	public static final String CACHE_OFFICE_LIST = "officeList";
+	
+	
+	public static User getUserByLoginName(String loginName){
+		return userDao.findByLoginName(loginName);
+	}
+		
 	
 	public static User getUser(){
 		User user = (User)getCache(CACHE_USER);
@@ -152,6 +155,9 @@ public class UserUtils extends BaseService {
 		return areaList;
 	}
 	
+
+	
+	
 	public static List<Office> getOfficeList(){
 		@SuppressWarnings("unchecked")
 		List<Office> officeList = (List<Office>)getCache(CACHE_OFFICE_LIST);
@@ -242,7 +248,8 @@ public class UserUtils extends BaseService {
 		for(User u:list){
 			Map<String, Object> map = Maps.newHashMap();
 			map.put("id", u.getId());
-			map.put("name", u.getName());		
+//			map.put("name", u.getName());	
+			map.put("name", "("+u.getLoginName()+")"+u.getName());
 			mapList.add(map);			
 		}
 		return mapList;

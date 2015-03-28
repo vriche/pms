@@ -5,17 +5,12 @@
  */
 package com.thinkgem.jeesite.common.utils.excel.fieldtype;
 
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.google.common.collect.Lists;
-import com.thinkgem.jeesite.common.utils.Collections3;
 import com.thinkgem.jeesite.common.utils.SpringContextHolder;
-import com.thinkgem.jeesite.modules.pms.entity.Unit;
-import com.thinkgem.jeesite.modules.sys.entity.Role;
+import com.thinkgem.jeesite.modules.sys.entity.Area;
+import com.thinkgem.jeesite.modules.sys.entity.Dict;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 import com.thinkgem.jeesite.modules.sys.service.SystemService;
+import com.thinkgem.jeesite.modules.sys.utils.DictUtils;
 
 /**
  * 字段类型转换
@@ -30,15 +25,12 @@ public class UserType {
 	 * 获取对象值（导入）
 	 */
 	public static Object getValue(String val) {
-	
-		List<User> allUserList = systemService.findAllUser();
-	
-			for (User e : allUserList){
-				if (e.getLoginName().equals(val)){
-					return e;
-				}
-			}
 		
+		for (Dict e : DictUtils.getDictList("sys_user_type")){
+			if (val.equals(e.getLabel())){
+				return e;
+			}
+		}
 		return null;
 	}
 
@@ -46,8 +38,8 @@ public class UserType {
 	 * 设置对象值（导出）
 	 */
 	public static String setValue(Object val) {
-		if (val != null && ((User)val).getLoginName() != null){
-			return ((User)val).getLoginName();
+		if (val != null && ((Dict)val).getLabel() != null){
+			return ((Dict)val).getLabel();
 		}
 		return "";
 	}

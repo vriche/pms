@@ -8,30 +8,35 @@
 	<%@include file="/WEB-INF/views/include/dialog.jsp" %>
 	<style type="text/css">.sort{color:#0663A2;cursor:pointer;}</style>
 	<script type="text/javascript">
-		$(document).ready(function() {
-			$("#treeTable").treeTable({expandLevel : 5});
-			
-			
-			
-			//$("#btnExport").click(function(){});
-			
-			$("#btnExport").click(function(){
-				top.$.jBox.confirm("确认要导出用户数据吗？","系统提示",function(v,h,f){
-					if(v=="ok"){
-						$("#searchForm").attr("action","${ctx}/pms/office/export");
-						$("#searchForm").submit();
-					}
-				},{buttonsFocus:1});
-				top.$('.jbox-body .jbox-icon').css('top','55px');
-			});
-			$("#btnImport").click(function(){
-				$.jBox($("#importBox").html(), {title:"导入数据", buttons:{"关闭":true}, 
-					bottomText:"导入文件不能超过5M，仅允许导入“xls”或“xlsx”格式文件！"});
-			});			
-			
-			
-			
-		});
+	
+	   
+      
+    $(document).ready(function() {
+
+
+      $("#btnExport").click(function(){
+        top.$.jBox.confirm("确认要导出用户数据吗？","系统提示",function(v,h,f){
+          if(v=="ok"){
+            $("#searchForm").attr("action","${ctx}/pms/office/export");
+            $("#searchForm").submit();
+             $("#searchForm").attr("action","${ctx}/pms/office/list");
+          }
+        },{buttonsFocus:1});
+        top.$('.jbox-body .jbox-icon').css('top','55px');
+      });
+      
+      $("#btnImport").click(function(){
+        $.jBox($("#importBox").html(), {title:"导入数据", buttons:{"关闭":true}, 
+          bottomText:"导入文件不能超过5M，仅允许导入“xls”或“xlsx”格式文件！"});
+           $("#searchForm").attr("action","${ctx}/pms/office/list");
+      });     
+      
+//      $("#btnSubmit").click(function(){
+//            $("#searchForm").attr("action","${ctx}/pms/office/list");
+//            $("#searchForm").submit();
+//      });       
+      
+    });
 
 		function page(n,s){
 			$("#pageNo").val(n);
@@ -39,11 +44,7 @@
 			$("#searchForm").submit();
 	    	return false;
 	    }
-	    
-	    
-	    
-	    
-	    
+
 	</script>
 </head>
 <body>
@@ -59,7 +60,7 @@
 
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="${ctx}/pms/office/">机构列表</a></li>
-		<shiro:hasPermission name="sys:office:edit"><li><a href="${ctx}/pms/office/form">机构添加</a></li></shiro:hasPermission>
+		<shiro:hasPermission name="pms:office:edit"><li><a href="${ctx}/pms/office/form">机构添加</a></li></shiro:hasPermission>
 	</ul>
 	
 
@@ -72,7 +73,7 @@
 		
 		
 		<div class="control-group">
-			<form:radiobuttons  id="sort" onclick="$('#searchForm').submit();" path="sort" items="${fns:getDictList('sys_office_sort')}" itemLabel="label" itemValue="value" htmlEscape="false" />	
+			<form:radiobuttons  id="sort" onclick="$('#searchForm').submit();" path="sort" items="${fns:getDictList2('sys_office_sort')}" itemLabel="label" itemValue="value" htmlEscape="false" />	
 		    
 		    &nbsp;&nbsp;<label>单位名称 ：</label><form:input path="name" htmlEscape="false" maxlength="50" class="input-small"/>
 		    
@@ -84,14 +85,22 @@
 	
 	<tags:message content="${message}"/>
 	<table id="treeTable" class="table table-striped table-bordered table-condensed">
-		<tr><th>机构名称</th><th>归属区域</th><th>机构编码</th><th>机构分类</th><th>机构类型</th><th>备注</th><shiro:hasPermission name="sys:office:edit"><th>操作</th></shiro:hasPermission></tr>
+		<tr>
+		<th>机构编码</th>
+		<th>机构名称</th>
+		<th>归属区域</th>
+		<th>机构分类</th>
+		<th>机构类型</th>
+		<th>备注</th>
+		<shiro:hasPermission name="sys:office:edit"><th>操作</th></shiro:hasPermission></tr>
 		
 		<c:forEach items="${page.list}" var="office">
 	
 			<tr id="${office.id}" pId="${office.parent.id ne requestScope.office.id?office.parent.id:'0'}">
+				<td>${office.code}</td>
 				<td><a href="${ctx}/pms/office/form?id=${office.id}">${office.name}</a></td>
 				<td>${office.area.name}</td>
-				<td>${office.code}</td>
+
 				<td>${fns:getDictLabel(office.sort, 'sys_office_sort', '无')}</td>
 				<td>${fns:getDictLabel(office.type, 'sys_office_type', '无')}</td>
 				<td>${office.remarks}</td>

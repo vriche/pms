@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.pms.dao.MyBatisDeviceDetailDao">
+
+
+
+	<!-- 调用见 DictService.find 方法 -->
+	<resultMap type="com.thinkgem.jeesite.modules.pms.entity.DeviceDetail" id="deviceDetailResult">
+	
+	       <result column="user_login_name" property="device.house.owner.loginName"/>
+	       <result column="company_code" property="device.house.owner.company.code"/>
+	       <result column="house_pos_name" property="device.house.name"/>
+	       <result column="house_unit_name" property="device.house.unit.name"/>
+	       <result column="house_num_floor" property="device.house.numFloor"/>
+	       <result column="house_code" property="device.house.code"/>
+	       <result column="user_name" property="device.house.owner.name"/>
+	       <result column="company_name" property="device.house.owner.company.name"/>
+	       <result column="payment_date" property="device.curDateStr"/>
+	       <result column="fees_name" property="device.fees.name"/>
+	       <result column="sum_usage_amount" property="sumUsageAmount"/>
+	       <result column="sum_pay_money" property="sumPayMoney"/>
+	       <result column="sum_income_money" property="incomeMoney"/>
+	
+	       
+  	</resultMap>
+
+	
+	<select id="find" parameterType="hashMap" resultMap="deviceDetailResult">
+		select 
+	 	    u.login_name as user_login_name,
+			of.code AS company_code,
+			CONCAT(cmt.name,bud.name) as house_pos_name,
+			unit.name as house_unit_name,
+			h.num_floor as house_num_floor,
+			h.code as house_code,
+			u.name as user_name,
+			of.name as company_name,
+
+			CONCAT(	date_format(MIN(c.last_date),'%Y/%c'),'月-',date_format(Max(c.last_date),'%Y/%c'),'月') as payment_date,
+			f.name as fees_name,
+			sum(c.sum_usage_amount) as sum_usage_amount,
+			sum(c.sum_pay_money) as sum_pay_money,
+			sum(c.income_money) as sum_income_money 
+			
+				 from  pms_device_detail c 
+		 INNER JOIN  pms_device d ON d.id = c.device_id 
+
+		 INNER JOIN  pms_house h ON h.id = d.house_id 
+		 INNER JOIN  pms_unit unit ON unit.id = h.unit_id 
+		 INNER JOIN  pms_buildings bud ON bud.id = unit.buildings_id 
+		 INNER JOIN  pms_community cmt ON cmt.id = bud.community_id 
+
+		 INNER JOIN  pms_fees f ON f.id = d.fees_id 
+		 INNER JOIN  sys_user u ON u.id = h.user_id 
+		 INNER JOIN  sys_office of ON of.id = u.company_id 
+
+		<where>
+		
+			<if test="officeId != null and officeId != ''">
+				and u.company_id = #{officeId} 
+			</if>
+		
+			<if test="fid != null and fid != ''">
+				and f.id = #{fid} 
+			</if>
+			
+			<if test="firstDate != null and firstDate != ''">
+				and c.last_date between #{firstDate} and #{lastDate}
+			</if>
+	
+			and c.del_flag = '0' and u.user_type = 2 
+		</where>
+
+		group by u.company_id ,f.id,u.id 
+		
+		order by u.company_id ,f.id,u.id 
+	</select>
+</mapper>

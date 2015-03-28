@@ -189,8 +189,11 @@ public class UnitController extends BaseController {
   		
   		if("device".endsWith(model)){
   			buildingsId = request.getParameter("house.unit.buildings.id");  
-    	}		
+    	}	
   		
+  		if("deviceDetail".endsWith(model)){
+  			buildingsId = request.getParameter("device.house.unit.buildings.id");  
+    	}		
   		
   		
 		response.setContentType("application/json; charset=UTF-8");

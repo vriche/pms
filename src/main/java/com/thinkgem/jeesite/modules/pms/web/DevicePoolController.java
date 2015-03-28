@@ -31,6 +31,7 @@ import com.thinkgem.jeesite.modules.pms.entity.House;
 import com.thinkgem.jeesite.modules.pms.service.DeviceService;
 import com.thinkgem.jeesite.modules.pms.service.FeesService;
 import com.thinkgem.jeesite.modules.pms.utils.DeviceUtils;
+import com.thinkgem.jeesite.modules.pms.utils.FeesUtils;
 import com.thinkgem.jeesite.modules.pms.utils.HouseUtils;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.User;
@@ -78,32 +79,71 @@ public class DevicePoolController extends BaseController {
 		
 //		
 		String proCompanyId = request.getParameter("fees.company.id");
+		String feesId = request.getParameter("fees.id");
 		 List<Office> companyList = UserUtils.findProCompanyList();
 		 if (StringUtils.isBlank(proCompanyId) && companyList.size() >0){
 			 proCompanyId = companyList.get(0).getId();
 		 }
+		 
+		 
+		 List<Fees> feesList = FeesUtils.getALLFees(proCompanyId);
 
 		
         model.addAttribute("proCompanyList", companyList);
+        model.addAttribute("feesList", feesList);
+        Fees fees = new Fees();
+        if(feesList.size() > 0 && feesId == null){
+			fees = feesList.get(0);
+		}else{
+			fees = FeesUtils.getFees(feesId);
+		}
+        
 		Device d = new Device();
 		d.setType("1");
-		Fees fees = new Fees();
+		
 		fees.setCompany(new Office(proCompanyId));
 		d.setFees(fees);
 		model.addAttribute("parentList", deviceService.find(d));
 		
-		device.setLastDate(null);
-		device.setFirstDate(null);
-		device.setPaymentDate(null);
-		device.setModel("2");
-		device.setPool("1");
 		
-		Page<Device> page = null;
-		if(device.getParent() != null){
-			if (StringUtils.isNotEmpty(device.getParent().getId())){
-				page = deviceService.find(new Page<Device>(request, response), device);
+		
+//		device.setLastDate(null);
+//		device.setFirstDate(null);
+//		device.setPaymentDate(null);
+//		device.setModel("2");
+//		device.setPool("1");
+		
+//		Page<Device> page = null;
+//		if(device.getParent() != null){
+//			if (StringUtils.isNotEmpty(device.getParent().getId())){
+//				page = deviceService.find(new Page<Device>(request, response), device);
+//			}
+//		}
+		
+		
+
+		DeviceUtils.getObjFromReq(device,request,response,model,1);
+		device.setType(null);
+		
+//		System.out.println(">>>>>>>>>>>>>>>>>>>> device.getParent().getId() >>>>>>>>>>>>>>>>>>>>>>>>"+device.getParent().getId());
+		
+		 Page<Device> page = new Page<Device>(request, response);
+		
+		if( device.getParent() != null ){
+			if(StringUtils.isNotBlank(device.getParent().getId())){
+				page = deviceService.findPage(new Page<Device>(request, response), device);
 			}
+	        
 		}
+
+		
+//		 String houseId = request.getParameter("houseId");
+//		if(houseId != null){
+//			 String labelName = request.getParameter("house.name");
+//			House house = new House(houseId);
+//			house.setName(labelName);
+//			user.setHouse(house);
+//		}
 
 
         model.addAttribute("page", page);
@@ -149,8 +189,13 @@ public class DevicePoolController extends BaseController {
 //		System.out.println(">>>>>>>>>>>>>>>>>>>> houseIds >>>>>>>>>>>>>>>>>>>>>>>>"+houseIds);
 //		System.out.println(">>>>>>>>>>>>>>>>>>>> parentId >>>>>>>>>>>>>>>>>>>>>>>>"+parentId);
 		
-	
-		List<Device> ls11 = deviceService.find(device);
+		Device dev = new Device();
+		dev.setParent(parent);
+		dev.setFees(device.getFees());
+		List<Device> ls11 = deviceService.find(dev);
+		
+		System.out.println(">>>>>>>>>>>>>>>>>>>>House ls11.size() >>>>>>>>>>>>>>>>>>>>>>>>"+ls11.size());
+		
 		for(Device d:ls11){
 //			System.out.println(">>>>>>>>>>>>>>>>>>>d.getPool() >>>>>>>>>>>>>>>>>>>>>>>>"+ d.getPool());
 			if("1".equals(d.getPool())){
@@ -162,9 +207,9 @@ public class DevicePoolController extends BaseController {
 		
 		
 		
-		List<House> ls1 = HouseUtils.getHousesList3(device.getHouseIds());
+		List<House> ls1 = HouseUtils.getHousesList3(device.getHouseIds()); 
 		
-//		System.out.println(">>>>>>>>>>>>>>>>>>>>House ls1.size() >>>>>>>>>>>>>>>>>>>>>>>>"+ls1.size());
+		System.out.println(">>>>>>>>>>>>>>>>>>>>House ls1.size() >>>>>>>>>>>>>>>>>>>>>>>>"+ls1.size());
 		
 		for (House h : ls1) { 
 //			List<Fees> list =  Lists.newArrayList();
@@ -176,7 +221,7 @@ public class DevicePoolController extends BaseController {
 				
 			String houseId = h.getId();
 //				String feesId = d.getFees().getId();
-				List<Device> ls = deviceService.findAllList(houseId, pfid);
+				List<Device> ls = deviceService.findAllList(houseId, pfid,"1");
 //				List<Device> ls = h.getDeviceList();
 				
 //				System.out.println(">>>>>>>>>>>>>>>>>>>Device> ls.size() >>>>>>>>>>>>>>>>>>>>>>>>"+ls.size());
@@ -198,11 +243,12 @@ public class DevicePoolController extends BaseController {
 //				}else{
 					for(Device d:ls){
 						System.out.println(">>>>>>>>>>>>>>>>>>>d.getPool() >>>>>>>>>>>>>>>>>>>>>>>>"+ d.getPool());
-						if("1".equals(d.getPool())){
+//						if("1".equals(d.getPool())){
 							d.setParent(parent);
 							d.setParentIds("0,"+parent.getId()+",");
+							d.setPool("1");
 							deviceService.save(d);
-						}
+//						}
 					}
 //				}
 				
@@ -214,8 +260,16 @@ public class DevicePoolController extends BaseController {
 
 //		deviceService.save(device);
 		
+		 String houseId = request.getParameter("houseId");
+		if(houseId != null){
+			 String labelName = request.getParameter("house.name");
+			House house = new House(houseId);
+			house.setName(labelName);
+			device.setHouse(house);
+		}
+		
 		redirectAttributes.addAttribute("parent.id", parentId);
-		addMessage(redirectAttributes, "保存分摊信息'" + device.getName() + "'成功");
+		addMessage(redirectAttributes, "保存分摊信息'"+ "'成功");
 		return "redirect:"+Global.getAdminPath()+"/pms/pool/?repage";
 	}
 	
@@ -243,17 +297,22 @@ public class DevicePoolController extends BaseController {
 		public Map<String, Object> getCommunityJson(String model,HttpServletRequest request, HttpServletResponse response) {
 
 	    	String proCompanyId = null;
+	    	String feesId = null;
 	    	
 	    	response.setContentType("application/json; charset=UTF-8");
 	    	
 	    
-	    	if("device".endsWith(model)){
+	    	if("device".equals(model)){
 	   		 	proCompanyId = request.getParameter("fees.company.id"); 
+	   		 	feesId = request.getParameter("fees.id"); 
 	    	}
+	    	
+	    	System.out.println(">>>>>>>>>>>>>>>>>>>> proCompanyId >>>>>>>>>>>>>>>>>>>>>>>>"+ proCompanyId);
+	    	System.out.println(">>>>>>>>>>>>>>>>>>>> feesId >>>>>>>>>>>>>>>>>>>>>>>>"+ feesId);
 	    	
 	    	Device d = new Device();
 			d.setType("1");
-			Fees fees = new Fees();
+			Fees fees = new Fees(feesId);
 			fees.setCompany(new Office(proCompanyId));
 			d.setFees(fees);
 			List<Device> list = deviceService.find(d);
@@ -263,6 +322,7 @@ public class DevicePoolController extends BaseController {
 			for (int i=0; i<list.size(); i++){
 				Device e = list.get(i);
 				map.put(e.getId(), e.getCode()+"_"+e.getName());
+//				System.out.println(">>>>>>>>>>>>>>>>>>>> e.getName() >>>>>>>>>>>>>>>>>>>>>>>>"+ e.getName());
 			}
 			return map;
 		}

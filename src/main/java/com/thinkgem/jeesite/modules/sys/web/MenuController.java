@@ -164,4 +164,56 @@ public class MenuController extends BaseController {
 		}
 		return mapList;
 	}
+	
+
+	@RequestMapping(value = "emptyPmsData")
+	public String emptyPmsData(RedirectAttributes redirectAttributes) {
+		return "modules/sys/dbManagerIndex";
+	}
+	
+	@RequestMapping(value = "emptyPmsDataAll")
+	public String emptyPmsDataAll(RedirectAttributes redirectAttributes) {
+		if(Global.isDemoMode()){
+			addMessage(redirectAttributes, "演示模式，不允许操作！");
+			return "redirect:"+Global.getAdminPath()+"/sys/menu/dbManagerIndex";
+		}
+		systemService.emptyPmsDataAll();
+		
+		return "redirect:"+Global.getAdminPath()+"/sys/menu/dbManagerIndex";
+	}
+	
+	  
+	
+	@RequestMapping(value = "emptyPmsDataPayment")
+	public String emptyPmsDataPayment(RedirectAttributes redirectAttributes) {
+		if(Global.isDemoMode()){
+			addMessage(redirectAttributes, "演示模式，不允许操作！");
+			return "redirect:"+Global.getAdminPath()+"/sys/menu/dbManagerIndex";
+		}
+		systemService.emptyPmsDataPayment();
+		
+		return "redirect:"+Global.getAdminPath()+"/sys/menu/dbManagerIndex";
+	}
+	
+	@RequestMapping(value = "emptyPmsDataDevice")
+	public String emptyPmsDataDevice(RedirectAttributes redirectAttributes) {
+		if(Global.isDemoMode()){
+			addMessage(redirectAttributes, "演示模式，不允许操作！");
+			return "redirect:"+Global.getAdminPath()+"/sys/menu/dbManagerIndex";
+		}
+		systemService.emptyPmsDataDevice();
+		
+		return "redirect:"+Global.getAdminPath()+"/sys/menu/dbManagerIndex";
+	}
+	
+	@RequestMapping(value = "emptyPmsDataUser")
+	public String emptyPmsDataUser(RedirectAttributes redirectAttributes) {
+		if(Global.isDemoMode()){
+			addMessage(redirectAttributes, "演示模式，不允许操作！");
+			return "redirect:"+Global.getAdminPath()+"/sys/menu/dbManagerIndex";
+		}
+		systemService.emptyPmsDataUser();
+		
+		return "redirect:"+Global.getAdminPath()+"/sys/menu/dbManagerIndex";
+	}
 }

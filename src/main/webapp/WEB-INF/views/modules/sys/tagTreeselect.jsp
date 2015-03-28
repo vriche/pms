@@ -30,7 +30,7 @@
 		
 				
 		
-			$.get("${ctx}${url}${fn:indexOf(url,'?')==-1?'?':'&'}&extId=${extId}&module=${module}&proCompanyId=${proCompanyId}&t="+new Date().getTime(), function(zNodes){
+			$.get("${ctx}${url}${fn:indexOf(url,'?')==-1?'?':'&'}&extId=${extId}&module=${module}&proCompanyId=${proCompanyId}&deviceId=${deviceId}&t="+new Date().getTime(), function(zNodes){
 				// 初始化树结构
 				tree = $.fn.zTree.init($("#tree"), setting, zNodes);
 				
@@ -40,6 +40,7 @@
 					tree.expandNode(nodes[i], true, false, false);
 				}
 				// 默认选择节点
+				
 				var ids = "${selectIds}".split(",");
 				for(var i=0; i<ids.length; i++) {
 					var node = tree.getNodeByParam("id", ids[i]);
@@ -63,6 +64,7 @@
 			if (key.get(0).value === "") {
 				key.addClass("empty");
 			}
+			
 			searchNode(e);
 		}
 		function searchNode(e) {
@@ -82,6 +84,7 @@
 			
 			// 保存最后一次
 			lastValue = value;
+			
 			
 			// 如果要查空字串，就退出不查了。
 			if (value === "") {

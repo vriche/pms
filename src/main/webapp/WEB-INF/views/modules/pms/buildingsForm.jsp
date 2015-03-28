@@ -155,6 +155,12 @@
 			</div>
 		</div>			
 
+	<div class="control-group">
+		<label class="control-label">序号:</label>
+		<div class="controls">
+			<form:input path="sort" htmlEscape="false" maxlength="200" />
+		</div>
+	</div>		
 	
 		<div class="form-actions">
 			<shiro:hasPermission name="pms:buildings:edit"></shiro:hasPermission><input id="btnSubmit" class="btn btn-primary" type="submit" value="保 存"/>

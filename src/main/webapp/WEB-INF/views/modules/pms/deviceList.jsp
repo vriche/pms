@@ -10,12 +10,24 @@
 	<script type="text/javascript">
 	
 	    function submit(){
+	    	 if(checkFees()){
 				$("#searchForm").attr("action","${ctx}/pms/device/");
 				$("#searchForm").attr("enctype","application/x-www-form-urlencoded");
 				$("#searchForm").attr("onsubmit","loading('正在搜索，请稍等...');");
 				$("#searchForm").submit();
+	    	 }
 	    }
-	
+	    
+	    function initDevice(){
+	    	 if(checkFees()){
+				$("#searchForm").attr("action","${ctx}/pms/device/initDevice");
+				$("#searchForm").attr("enctype","application/x-www-form-urlencoded");
+				$("#searchForm").attr("onsubmit","loading('正在初始化，请稍等...');");
+				$("#searchForm").submit();
+	    	 }
+	    }
+	    
+
 	
 		$(document).ready(function() {
 
@@ -47,6 +59,14 @@
 			    location.href = "${ctx}/pms/device/form?type="+$("#type").val()+"&fees.company.id="+$("#proCompanyId").val();
 			})
 			
+			$("#feesId").change(function(){ 
+				$("#searchForm").attr("action","${ctx}/pms/device/");
+				$("#searchForm").attr("enctype","application/x-www-form-urlencoded");
+				$("#searchForm").attr("onsubmit","loading('正在搜索，请稍等...');");
+				$("#searchForm").submit();
+			})
+			
+			
 			//$("#saveDeviceByHouseList").click(function(){ location.href = "${ctx}/pms/device/savehouse";})
 			
 			 
@@ -71,17 +91,27 @@
 		$("#btnSubmit").click(function(){
 				submit();
 			});
+		
+		$("#btnInit").click(function(){
+			initDevice();
+		});
+		
 			   
 			$("#btnExport").click(function(){
 		       
-				top.$.jBox.confirm("确认要导出吗？","系统提示",function(v,h,f){
-					if(v=="ok"){
-						$("#searchForm").attr("action","${ctx}/pms/device/export/");
-						$("#searchForm").attr("enctype","application/x-www-form-urlencoded");
-						$("#searchForm").submit();					
-					}
-				},{buttonsFocus:1});
-				top.$('.jbox-body .jbox-icon').css('top','55px');
+				 if(checkFees()){
+						top.$.jBox.confirm("确认要导出吗？","系统提示",function(v,h,f){
+							if(v=="ok"){
+								$("#searchForm").attr("action","${ctx}/pms/device/export/");
+								$("#searchForm").attr("enctype","application/x-www-form-urlencoded");
+								$("#searchForm").submit();					
+							}
+						},{buttonsFocus:1});
+						top.$('.jbox-body .jbox-icon').css('top','55px');					 
+				 }
+
+				
+				
 			});
 			
 			
@@ -101,7 +131,14 @@
 					$("#importForm").submit();
 		}
 
-		
+		function checkFees(){
+			if($("#feesId").val() ==""){
+				top.$.jBox.alert("收费项目必选");
+			   $("#feesId").focus();
+			}else{
+				return true;
+			}
+	}	
 		
 		
 			
@@ -118,8 +155,8 @@
 
 	
 	<ul class="nav nav-tabs">
-		<li class="active"><a href="${ctx}/pms/device/">设备信息列表</a></li>
-		<li><a id="add" href="javascript:void 0">设备信息添加</a></li>
+		<li class="active"><a href="${ctx}/pms/device/">计费设备列表</a></li>
+		<li><a id="add" href="javascript:void 0">计费设备信息添加</a></li>
 	</ul>
 	
 	
@@ -132,9 +169,7 @@
 	</div>
 	
 	<form:form id="searchForm" modelAttribute="device" action="${ctx}/pms/device/" method="post" class="breadcrumb form-search">
-	
-	
-	
+
 	<!-- div id="importBox" class="hide">
 			<input id="uploadFile" name="file" type="file" style="width:330px"/><br/><br/>　　
 			<input id="btnImportSubmit" class="btn btn-primary" type="button" value="   导    入   "  onclick="importSubmit()"/>
@@ -144,6 +179,7 @@
 	<div>
 		<input id="pageNo" name="pageNo" type="hidden" value="${page.pageNo}"/>
 		<input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
+		<input id="initDevice" name="initDevice" type="hidden" value="0"/>
 		
 		<label class="control-label">物业:</label>
 		<form:select id="proCompanyId" name="proCompanyId" path="fees.company.id"  class="text medium;required">
@@ -151,13 +187,12 @@
 		</form:select>
 		
 		<label class="control-label">计费类型:</label>
-		<form:select id="type" name="type" path="type"  class="input-small text medium">
+		<form:select id="type" name="type" path="type"   style="width:100px;">
 					<form:options items="${fns:getDictList('pms_device_type')}" itemLabel="label" itemValue="value" htmlEscape="false"/>
 		</form:select>	
 		
 		<label class="control-label">费项:</label>
-			<form:select id="feesId" name="feesId" path="fees.id" class="input-small text medium;required">
-					<form:option value="" label=""/>
+			<form:select id="feesId" name="feesId" path="fees.id"  style="width:100px;">
 					<form:options items="${feesList}" itemLabel="name" itemValue="id" htmlEscape="false" />
 			</form:select>		
 		
@@ -171,9 +206,7 @@
 				
 		</span>	
 		
-		&nbsp;<input id="btnSubmit" class="btn btn-primary" type="button" value="查询"/>
-		&nbsp;<input id="btnExport" class="btn btn-primary" type="button" value="导出"/>
-		&nbsp;<input id="btnImport" class="btn btn-primary" type="button" value="导入"/>
+
 	
 	</div>	
 	
@@ -223,22 +256,22 @@
 					<form:options items="${communityList}" itemLabel="name" itemValue="id" htmlEscape="false" />
 		</form:select>
 		
-		<label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;楼宇:</label>
-		<form:select id="buildingsId" name="buildingsId" path="house.unit.buildings.id"  class="input-small">
+		<label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;楼宇:</label>
+		<form:select id="buildingsId" name="buildingsId" path="house.unit.buildings.id"  style="width:100px;">
 					<form:option value="" label=""/>
 					<form:options items="${buildingsList}" itemLabel="name" itemValue="id" htmlEscape="false" />
 		</form:select>		
 		
-		<label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;单元:</label>
-		<form:select id="unitId" name="unitId" path="house.unit.id"  class="input-small">
+		<label class="control-label">&nbsp;&nbsp;单元:</label>
+		<form:select id="unitId" name="unitId" path="house.unit.id"   style="width:100px;">
 					<form:option value="" label=""/>
 					<form:options items="${unitList}" itemLabel="name" itemValue="id" htmlEscape="false" />
 		</form:select>	
 		
-		<label class="control-label">&nbsp;&nbsp;&nbsp;&nbsp;房屋:</label>
-		<form:select id="houseId" name="houseId" path="house.id"  class="input-small">
+		<label class="control-label">&nbsp;房屋:</label>
+		<form:select id="houseId" name="houseId" path="house.id"   style="width:120px;">
 					<form:option value="" label=""/>
-					<form:options items="${houseList}" itemLabel="name" itemValue="id" htmlEscape="false" />
+					<form:options items="${houseList}" itemLabel="code" itemValue="id" htmlEscape="false" />
 		</form:select>	
 		   
 		          
@@ -246,53 +279,42 @@
 		
 		</div>
 		
+		<div  style="margin-top:8px;">
+		&nbsp;<input id="btnSubmit" class="btn btn-primary" type="button" value="&nbsp;&nbsp;查&nbsp;&nbsp;  &nbsp;  询&nbsp;&nbsp;"/>
+		
+		&nbsp;<input id="btnExport" class="btn btn-primary" type="hidden" value="导  出"/>
+		&nbsp;<input id="btnImport" class="btn btn-primary" type="hidden" value="导  入"/>
+		
+		&nbsp;<input id="btnInit" class="btn btn-primary" type="button" value="初始化计费项"/>
+		</div>
 		
 	</form:form>
 	<tags:message content="${message}"/>
 	<table id="contentTable" class="table table-striped table-bordered table-condensed table-hover">
 		<thead><tr>
 		<th>编码</th>
-		<th>收费项目</th>
-		
+		<!-- th>收费项目</th -->
+		<th>收费方式</th>
 		<c:if test="${device.type  == 1}">	
-		    <th>分摊方式</th>
 			<th>分摊户数</th>		
-			<th>上次读数</th>
-			<th>本次读数</th>
-			<th>使用量</th>
-			<th>上次日期</th>
-			<th>本次日期</th>	
 		</c:if> 	
 		
 		<c:if test="${device.type  == 2}">	
 			<th>单位</th>
-			<th>上次读数</th>
-			<th>本次读数</th>
-			<th>使用量</th>
-			<th>本次公摊量</th>	
-			<th>上次日期</th>
-			<th>本次日期</th>	
-			
-			
 		</c:if> 		
 		
 		<c:if test="${device.type  == 3}">	
-			<th>公摊</th>
+			<th>有公摊</th>
 			<th>房屋</th>
+			<th>业主编码</th>
 			<th>业主</th>
 			<th>单位</th>			
-			<th>上次读数</th>
-			<th>本次读数</th>
-			<th>使用量</th>
-			<th>本次公摊量</th>	
-			<th>上次日期</th>
-			<th>本次日期</th>	
 		</c:if> 	
 		
-		<th>交费限期</th>	
 
-		
 		<shiro:hasPermission name="pms:device:edit"></shiro:hasPermission>
+		<th>启用</th>
+	
 		<th>操作</th>
 		
 		</tr></thead>
@@ -300,47 +322,55 @@
 		<c:forEach items="${page.list}" var="device">
 			<tr>
 				<td><a href="${ctx}/pms/device/form?id=${device.id}">${device.code}</a></td>
+				
+				<!-- 
 				<td>${device.fees.name}</td>
-			
+				<td>${fns:getDictLabel(device.fees.feesType, 'pms_fees_type', ' ')}</td>
+				-->
+				<td>${fns:getDictLabel(device.fees.feesMode, 'pms_fees_mode', '')}</td>
 				<c:if test="${device.type  == 1}">
-					<td>${fns:getDictLabel(device.feesMode, 'pms_fees_mode', '')}</td>
+					
 					<td>${fn:length(device.childList)}</td>		
-					<td>${device.firstNum}</td>
-					<td>${device.lastNum}</td>
-				    <td>${device.usageAmount}</td>	
-				    <td><fmt:formatDate value="${device.firstDate}" pattern="yyyy-MM-dd"/></td>
-					<td><fmt:formatDate value="${device.lastDate}" pattern="yyyy-MM-dd"/></td>	
 				</c:if> 					
 
 				<c:if test="${device.type  == 2}">
-				    <td>${device.house.owner.company.name}</td>				
-					<td>${device.firstNum}</td>
-					<td>${device.lastNum}</td>
-				    <td>${device.lastNum - device.firstNum}</td>	
-				    <td>${device.usageAmount}</td>	
-				    <td><fmt:formatDate value="${device.firstDate}" pattern="yyyy-MM-dd"/></td>
-					<td><fmt:formatDate value="${device.lastDate}" pattern="yyyy-MM-dd"/></td>					
+				    <td>${device.house.owner.company.name}</td>						
 				</c:if> 	
 				
 				<c:if test="${device.type  == 3}">
-					<td>${device.pool}</td>
+					<!-- td>${device.pool}</td -->
+
+					
+				<c:choose>
+				    <c:when test="${empty device.parent}">
+				    	<td></td>
+				    </c:when>
+				    <c:otherwise>
+				    	<td>有</td>
+				    </c:otherwise>
+				</c:choose>	
+					
+					
 				    <td>${device.house.fullName}</td>
+				    <td>${device.house.owner.loginName}</td>
 				    <td>${device.house.owner.name}</td>
-				    <td>${device.house.owner.company.name}</td>				
-					<td>${device.firstNum}</td>
-					<td>${device.lastNum}</td>
-				    <td>${device.usageAmount}</td>	
-				    <td>${device.poolUsageAmount}</td>	
-				    <td><fmt:formatDate value="${device.firstDate}" pattern="yyyy-MM-dd"/></td>
-					<td><fmt:formatDate value="${device.lastDate}" pattern="yyyy-MM-dd"/></td>					
+				    <td>${device.house.owner.company.name}</td>								
 				</c:if> 	
 				
-				<td><fmt:formatDate value="${device.paymentDate}" pattern="yyyy-MM-dd"/></td>
+				<c:choose>
+			    <c:when test="${device.enable == '1'}">
+			    	<td>是</td>
+			    </c:when>
+			    <c:otherwise>
+			    <td></td>
+			    </c:otherwise>
+			    </c:choose>	
+	
 												
 				<shiro:hasPermission name="pms:device:edit"></shiro:hasPermission>
 				<td>
-    				<a href="${ctx}/pms/device/form?id=${device.id}">修改</a>
-					<a href="${ctx}/pms/device/delete?id=${device.id}" onclick="return confirmx('确认要删除该信息吗？', this.href)">删除</a>
+    				<a href="${ctx}/pms/device/form?id=${device.id}">修改</a> 
+					<a href="${ctx}/pms/device/delete?id=${device.id}&proCompanyId=${device.fees.company.id}&type=${device.type}&feesId=${device.fees.id}" onclick="return confirmx('确认要删除该信息吗？', this.href)">删除</a>
 				</td>				
 
 			</tr>

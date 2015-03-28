@@ -52,7 +52,7 @@ public class Fees extends IdEntity<Fees> {
 	private static final long serialVersionUID = 1L;
 	private String name; // name '费项名称'
 	private Fees parent; // parent_id '关联费项',
-	private String feesMode; // fees_mode pms_fees_mode '收费方式' 1：一级；2：二级；3：三级；4：四级）
+	private String feesMode; // fees_mode pms_fees_mode  '收费方式' 1：一级；2：二级；3：三级；4：四级）
     
 	private String feesType;  // pms_fees_type '收费类型' 1：正常；2：公摊；
 	
@@ -72,7 +72,11 @@ public class Fees extends IdEntity<Fees> {
 	private boolean withoutPool; // '排除公摊
 	
 
+	private List<String> feesIdList = Lists.newArrayList(); 
 
+
+
+	
 
 	private List<Device> deviceList = Lists.newArrayList(); // 公摊时用到
 
@@ -288,6 +292,8 @@ public class Fees extends IdEntity<Fees> {
 			}
 		}
 	}
+	
+
 
 	@Transient
 	public boolean isAdmin() {
@@ -306,5 +312,15 @@ public class Fees extends IdEntity<Fees> {
 
 	public void setWithoutPool(boolean withoutPool) {
 		this.withoutPool = withoutPool;
+	}
+	
+	
+	@Transient
+	public List<String> getFeesIdList() {
+		return feesIdList;
+	}
+
+	public void setFeesIdList(List<String> feesIdList) {
+		this.feesIdList = feesIdList;
 	}
 }

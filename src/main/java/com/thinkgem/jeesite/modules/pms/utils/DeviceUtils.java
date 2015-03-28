@@ -6,6 +6,8 @@
 package com.thinkgem.jeesite.modules.pms.utils;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,12 +15,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.ui.Model;
 
+import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.utils.Arith;
+import com.thinkgem.jeesite.common.utils.DateUtils;
 import com.thinkgem.jeesite.common.utils.SpringContextHolder;
 import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.modules.pms.entity.Buildings;
 import com.thinkgem.jeesite.modules.pms.entity.Community;
 import com.thinkgem.jeesite.modules.pms.entity.Device;
+import com.thinkgem.jeesite.modules.pms.entity.DeviceDetail;
 import com.thinkgem.jeesite.modules.pms.entity.Fees;
 import com.thinkgem.jeesite.modules.pms.entity.House;
 import com.thinkgem.jeesite.modules.pms.entity.Unit;
@@ -133,7 +138,10 @@ public class DeviceUtils {
 	    		    d.setPoolPayMoney(new BigDecimal(poolPayMoneyStr));
 					
 				    d.setSumUsageAmount(new BigDecimal(Arith.add(d.getUsageAmount(), d.getPoolUsageAmount())));
-				    d.setSumPayMoney(new BigDecimal(Arith.add(d.getPayMoney(), d.getPoolPayMoney())));				    	
+				    d.setSumPayMoney(new BigDecimal(Arith.add(d.getPayMoney(), d.getPoolPayMoney())));		
+				    double sumPayMoney = Arith.roundEVEN(d.getSumPayMoney().doubleValue(), 2);
+				    d.setSumPayMoney(new BigDecimal(String.valueOf(sumPayMoney)));
+				    
 			    }else{
 				    d.setSumUsageAmount(d.getUsageAmount());
 				    double payMoney = Arith.roundEVEN(d.getPayMoney().doubleValue(), 2);
@@ -428,19 +436,24 @@ public class DeviceUtils {
 			String code = device.getCode();
 			House house = device.getHouse();
 			
+			String communityName = house.getCommunityName();
+			
+			
 //			System.out.println(">>>>>>>>>>>>>>>>>>>>  house >>>>>>>>666666666666666666>>>>>>>>>>>>>>>>"+ house);
+//			System.out.println(">>>>>>>>>>>>>>>>>>>>  house >>>>>>>>666666666666666666>>>>>>>>>>>>>>>>"+ house.getId()+""+ house.getCode());
 			
 			User owner = house.getOwner();
 			String houseId = house.getId();
 			Fees fees = device.getFees();
 			String feesModel = fees.getFeesMode();
+			String feesCode = fees.getCode();
 			
 			if(!"1".equals(type)){
 				
 				if(StringUtils.isEmpty(code)){
                      
 					 //电话费  把电话号码作为设备号
-					 if("5".equals(feesModel)){
+					 if("A05".equals(feesCode)){
 						    if(owner != null){
 								String phone = owner.getPhone();
 								if (StringUtils.isNotEmpty(phone)){
@@ -455,8 +468,9 @@ public class DeviceUtils {
 						}		
 				}
 			}else{
+				//公摊设备
 				if(StringUtils.isEmpty(code)){
-					code = "P_"+fees.getCode();	
+					code = communityName+ "_"+fees.getCode();	
 				}
 			}
 			return code;
@@ -483,6 +497,7 @@ public class DeviceUtils {
 		String buildingsId = "";
 		String unitId ="";
 		String houseId = "";
+		String type = "";
 		
 		if(from == 1){
 			 proCompanyId = request.getParameter("fees.company.id");
@@ -492,6 +507,7 @@ public class DeviceUtils {
 			 buildingsId = request.getParameter("house.unit.buildings.id");
 			 unitId = request.getParameter("house.unit.id");
 			 houseId = request.getParameter("house.id");
+//			 type = request.getParameter("type");
 		}
 		
 
@@ -504,18 +520,23 @@ public class DeviceUtils {
 			 buildingsId = request.getParameter("device.house.unit.buildings.id");
 			 unitId = request.getParameter("device.house.unit.id");
 			 houseId = request.getParameter("device.house.id");
+//			 type = request.getParameter("device.type");
 		}
 		
-		
+	
+//		System.out.println("device.fees.company.id>>>>>>>>>>>>"+request.getParameter("device.fees.company.id"));
+//		System.out.println("feesId>>>>>>>>>>>>"+request.getParameter("device.fees.id"));
+//		System.out.println("deviceDetail.device.fees.id>>>>>>>>>>>>"+request.getParameter("deviceDetail.device.fees.id"));
+
 		String feesMode = FeesUtils.getFeesMode(feesId);
-		
-		
+
 		List<Office> proCompanyList = UserUtils.findProCompanyList();
 		
 		
 		
 		
 		if(device == null) device = new Device();
+	
 		if(device.getFees() == null) device.setFees(fees);
 		if(device.getHouse() == null) device.setHouse(house);
 		if(device.getFees().getCompany() == null) device.getFees().setCompany(proCompany);
@@ -554,6 +575,10 @@ public class DeviceUtils {
 		}
 	
 		List<Fees> feesList = FeesUtils.getALLFees(proCompanyId);
+		if(feesList.size() > 0 && feesId == null){
+			fees = feesList.get(0);
+			feesId = fees.getId();
+		}
 		if(model!= null) model.addAttribute("feesList", feesList);
 //		if (StringUtils.isNotBlank(proCompanyId)){
 ////			device.getFees().setId(feesId);
@@ -585,9 +610,9 @@ public class DeviceUtils {
 			
 			if(model!= null){
 				List<House> houseList = houseService.findAllHouse(hhh);
-				for(House h:houseList){
-					h.setName(h.getCode()+"("+h.getOwner().getName()+")");
-				}
+//				for(House h:houseList){
+//					h.setName(h.getCode()+"("+h.getOwner().getName()+")");
+//				}
 				
 				model.addAttribute("houseList", houseList);			
 			}
@@ -607,7 +632,7 @@ public class DeviceUtils {
 		
 		
 		if(model!= null){
-			List<Office> companyList =UserUtils.findCompanyListByProCompany(proCompanyId);
+			List<Office> companyList = UserUtils.findCompanyListByProCompany(proCompanyId);
 			Device dev = new Device();
 			dev.setType("1");
 			List<Device> parentDeviceList = deviceService.find(dev);
@@ -621,6 +646,140 @@ public class DeviceUtils {
 //        model.addAttribute("fees.id", feesMode);
 
         
+	}
+	
+	
+	
+	public static void getObjFromReq(Device device, HttpServletRequest request, HttpServletResponse response,Model model,int type){
+
+		 String proCompanyId = request.getParameter("fees.company.id");
+		 String feesId = request.getParameter("fees.id");
+		 String deviceType = request.getParameter("type");
+		 
+		 String companyId = request.getParameter("house.owner.company.id");
+		 String communityId = request.getParameter("house.unit.buildings.community.id");
+		 String buildingsId = request.getParameter("house.unit.buildings.id");
+		 String unitId = request.getParameter("house.unit.id");
+		 String houseId = request.getParameter("house.id");
+
+//		Device device = new Device();
+		Office company = new Office();	 
+		User owner = new User();
+		Office proCompany = new Office();
+		House house = new House();
+		Fees fees = new Fees();
+		Unit unit = new Unit();
+		Buildings buildings = new Buildings();
+		Community community = new Community();
+
+		unit.setBuildings(buildings);
+		buildings.setCommunity(community);
+		community.setProCompany(proCompany);
+		fees.setCompany(proCompany);
+		owner.setCompany(company);
+		house.setUnit(unit);
+		house.setOwner(owner);
+		
+		device.setHouse(house);
+		device.setFees(fees);
+		
+		device.setLastDate(null);
+		device.setFirstDate(null);
+		device.setPaymentDate(null);
+		device.setPool(null);
+
+
+		if (StringUtils.isNotBlank(proCompanyId)){
+			proCompany.setId(proCompanyId);
+		}
+		if (StringUtils.isNotBlank(deviceType)){
+			device.setType(deviceType);
+		}	
+		
+
+
+		if (StringUtils.isNotBlank(feesId)){
+			fees.setId(feesId);
+		}
+		
+
+		if (StringUtils.isNotBlank(companyId)){
+			company.setId(companyId);
+		}
+		if (StringUtils.isNotBlank(communityId)){
+			community.setId(communityId);
+		}
+		if (StringUtils.isNotBlank(buildingsId)){
+			buildings.setId(buildingsId);
+		}
+		if (StringUtils.isNotBlank(unitId)){
+			unit.setId(unitId);
+		} 
+		if (StringUtils.isNotBlank(houseId)){
+			house.setId(houseId);
+		}		
+		
+
+		if(type == 1){
+			List<Office> proCompanyList = UserUtils.findProCompanyList();
+			if (StringUtils.isBlank(proCompanyId)){
+				if(proCompanyList.size()>0){
+					proCompanyId = proCompanyList.get(0).getId();
+					proCompany.setId(proCompanyId);				
+				}
+
+			}
+			model.addAttribute("proCompanyList", proCompanyList);
+
+			if (StringUtils.isBlank(deviceType)){
+				device.setType("1");
+				deviceType = "1";
+			}
+	
+			List<Fees> feesList = FeesUtils.getALLFees(proCompanyId);
+			if (StringUtils.isBlank(feesId)){
+				if(feesList.size()>0){
+					feesId = feesList.get(0).getId();
+					fees.setId(feesId);
+				}
+
+			}
+			model.addAttribute("feesList", feesList);
+	
+			if (StringUtils.isNotBlank(proCompanyId)){
+				List<Office> companyList = UserUtils.findCompanyListByProCompany(proCompanyId);
+				model.addAttribute("companyList", companyList);
+				model.addAttribute("communityList",communityService.findAllCommunity(community));	
+			}
+
+			
+			if (StringUtils.isNotBlank(communityId)){
+				model.addAttribute("buildingsList", buildingsService.findAllBuildings(buildings));
+			}
+			
+			if (StringUtils.isNotBlank(buildingsId)){
+				model.addAttribute("unitList",unitService.findAllUnit(unit));
+			}
+			if (StringUtils.isNotBlank(unitId)){
+//				List<House> houseList = houseService.findAllHouse(house);
+				 Page<House> page = new Page<House>(request, response,-1);
+	    		houseService.findPage(page,house,null,1);
+				model.addAttribute("houseList", page.getList());
+			} 
+
+		}
+		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>feesId>>>>>>>>>"+ feesId);
+		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>>>proCompanyId>>>>>>>"+ proCompanyId);
+		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>deviceType>>>>>"+ deviceType);		 
+//		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>lastDate>>>>>"+ lastDate);	
+		 
+		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>companyId>>>>>>"+ companyId);
+		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>communityId>>>>>>"+ communityId);
+		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>>>buildingsId>>>>>>>"+ buildingsId);
+		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>unitId>>>>>>"+ unitId);
+		 System.out.println("getObjFromReq>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>houseId>>>>"+ houseId);
+
+		 
 	}
 	
 	

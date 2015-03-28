@@ -11,6 +11,7 @@ import java.beans.PropertyDescriptor;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -186,6 +187,8 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 		}
 	}
 	
+
+	
 //	public static Map<String,String> getQueryString2Map(String search) {
 //		   Map searchparms = new Hashtable();
 //		   StringTokenizer st1 = new StringTokenizer(search, "&");
@@ -252,5 +255,24 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     public static String lpad(int length, int number) {
         String f = "%0" + length + "d";
         return String.format(f, number);
+    }
+    
+    /**
+     * 判断字符串的编码
+     *
+     * @param str
+     * @return
+     */
+    public static String getURLDecoderStr(String parameter) {
+    	parameter = (parameter == null)?"":parameter;
+    	try {
+			return URLDecoder.decode(parameter, "utf-8");
+			
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		
+		}
+		return "";
     }
 }

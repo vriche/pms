@@ -69,6 +69,7 @@
 			
 			
 			$("#tabs1").click(function(){
+				var feesId = document.getElementById("feesId").value; 
 				var houseId = document.getElementById("house.id").value;
 				var proCompanyId = document.getElementById("device.fees.company.id").value;
 				location.href = "${ctx}/pms/payemtDetail/form?house.id="+ houseId +"&device.fees.company.id="+ proCompanyId;
@@ -95,9 +96,9 @@
 			mygrid = new dhtmlXGridObject('gridbox');
 			mygrid.selMultiRows = true;
 			mygrid.setImagePath("${ctxStatic}/dhtmlxTreeGrid/image/grid/");
-			var flds = "<input type='checkbox' onclick='ckall(this)' />,费项,上次读数,最后读数,使用量,公摊量,总用量,单价,应付金额,到账金额,付款期限";
+			var flds = "<input type='checkbox' onclick='ckall(this)' />,费项,上次读数,本次读数,用量,单价,本次付,公摊费,总应付,到账金额,缴费日期";
 			mygrid.setHeader(flds);
-			var columnIds = "inedx,feedName,firstNum,lastNum,useNum,poolNum,sumNum,price,cost,incone,paydates";
+			var columnIds = "inedx,feedName,firstNum,lastNum,useNum,price,payMoney,poolPay,cost,incone,paydates";
 			mygrid.setColumnIds(columnIds);
 			
 		    mygrid.setInitWidthsP("2,8,10,10,10,10,10,10,10,10,10");

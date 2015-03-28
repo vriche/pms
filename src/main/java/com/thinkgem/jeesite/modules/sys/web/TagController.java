@@ -34,8 +34,9 @@ public class TagController extends BaseController {
 		model.addAttribute("checked", request.getParameter("checked")); // 是否可复选
 		model.addAttribute("selectIds", request.getParameter("selectIds")); // 指定默认选中的ID
 		model.addAttribute("nodesLevel", request.getParameter("nodesLevel"));	// 菜单展开层数
-		model.addAttribute("url", request.getParameter("url")); 	// 树结构数据URL
+//		model.addAttribute("url", request.getParameter("url")); 	// 树结构数据URL
 		model.addAttribute("proCompanyId", request.getParameter("proCompanyId")); 	// 树结构数据URL
+		model.addAttribute("deviceId", request.getParameter("deviceId")); 	// 树结构数据URL
 		
 		return "modules/sys/tagTreeselect";
 	}

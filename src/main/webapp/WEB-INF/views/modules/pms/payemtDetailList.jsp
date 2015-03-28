@@ -149,6 +149,7 @@
 		<th>房产</th>
 		<th>面积</th>
 		<th>业主</th>
+		<th>单位</th>
 		<th>费用</th>
 		<th>上次读数</th>
 		<th>本次读数</th>
@@ -161,7 +162,7 @@
 		<!-- th>优惠金额</th -->
 		<th>读表日期</th>
 		<th>交费限期</th>		
-		<th>操作</th>
+		<!-- th>操作</th -->
 		<shiro:hasPermission name="pms:payemtDetail:edit"></shiro:hasPermission>
 		</tr></thead>
 		<tbody>
@@ -170,6 +171,7 @@
 			    <td>${payemtDetail.device.house.fullName}</td>
 			    <td>${payemtDetail.device.house.buildArea}</td>
 			    <td>${payemtDetail.device.house.owner.name}</td>
+			    <td>${payemtDetail.device.house.owner.company.name}</td>	
 			    <td>${payemtDetail.device.fees.name}</td>
 			    <td>${payemtDetail.device.firstNum}</td> 
 				<td>${payemtDetail.lastNum}</td>
@@ -184,10 +186,10 @@
 				<td>${payemtDetail.paymentDate}</td>
 				
 				<shiro:hasPermission name="pms:payemtDetail:edit"></shiro:hasPermission>
-				<td>
+				<!-- td>
     				<a href="${ctx}/pms/payemtDetail/form?id=${payemtDetail.id}">修改</a>
 					<a href="${ctx}/pms/payemtDetail/delete?id=${payemtDetail.id}" onclick="return confirmx('确认要删除该单元信息吗？', this.href)">删除</a>
-				</td>
+				</td -->
 			</tr>
 		</c:forEach>
 		</tbody>

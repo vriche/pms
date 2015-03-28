@@ -3,7 +3,7 @@
 	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
 	
-  <display-name>JeeSite</display-name>
+  <display-name>PMS</display-name>
   
   <!-- 激活Tomcat的defaultServlet来处理静态文件 -->
   <servlet-mapping>
@@ -65,6 +65,12 @@
     <filter-name>openSessionInViewFilter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
+  
+  
+  
+  
+  	
+  	
   
   <!-- Apache Shiro -->
   <filter>

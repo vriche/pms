@@ -6,7 +6,6 @@
 package com.thinkgem.jeesite.modules.pms.web;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +29,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.thinkgem.jeesite.common.beanvalidator.BeanValidators;
 import com.thinkgem.jeesite.common.config.Global;
+import com.thinkgem.jeesite.common.mapper.JsonMapper;
 import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.utils.Collections3;
 import com.thinkgem.jeesite.common.utils.DateUtils;
@@ -37,8 +37,11 @@ import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.common.utils.excel.ExportExcel;
 import com.thinkgem.jeesite.common.utils.excel.ImportExcel;
 import com.thinkgem.jeesite.common.web.BaseController;
+import com.thinkgem.jeesite.modules.pms.entity.Device;
 import com.thinkgem.jeesite.modules.pms.entity.Fees;
+import com.thinkgem.jeesite.modules.pms.entity.House;
 import com.thinkgem.jeesite.modules.pms.service.CompanyService;
+import com.thinkgem.jeesite.modules.pms.service.DeviceService;
 import com.thinkgem.jeesite.modules.pms.service.FeesService;
 import com.thinkgem.jeesite.modules.pms.service.HouseService;
 import com.thinkgem.jeesite.modules.pms.service.UserService;
@@ -46,6 +49,7 @@ import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.Role;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 import com.thinkgem.jeesite.modules.sys.service.SystemService;
+import com.thinkgem.jeesite.modules.sys.utils.DictUtils;
 import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
 
 /**
@@ -72,6 +76,8 @@ public class OwnerController extends BaseController {
 	@Autowired
 	private SystemService systemService;
 	
+	@Autowired
+	private DeviceService deviceService;
 	
 	
 	private boolean isNewExcel =  com.thinkgem.jeesite.common.config.Global.getOfficeVersion();
@@ -91,24 +97,54 @@ public class OwnerController extends BaseController {
 //	@RequiresPermissions("pms:user:view")
 	@RequestMapping(value = {"list", ""})
 	public String list(User user, HttpServletRequest request, HttpServletResponse response, Model model) {
-//		user.setUserType("2");
-//		String buildingsId = request.getParameter("buildings");
-//		if(buildingsId != null){
-//			House house = new House();
-//			Unit unit = new Unit();
-//			Buildings buildings = new Buildings();
-//			buildings.setId(buildingsId);
-//			unit.setBuildings(buildings);
-//			house.setUnit(unit);
-//			List<House> ls =  Lists.newArrayList();
-//			ls.add(house);
-//		}
+        String houseIds = request.getParameter("houseIds");
+		String companyId = request.getParameter("proCompanyId");
+		String userType = request.getParameter("userType");
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>companyId   >>>"+ companyId);
+		
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>houseIds.labelName   >>>"+request.getParameter("labelName"));
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>extId   >>>"+request.getParameter("extId"));
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>checked   >>>"+request.getParameter("checked"));
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>selectIds   >>>"+request.getParameter("selectIds"));
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>nodesLevel   >>>"+request.getParameter("nodesLevel"));
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>proCompanyId   >>>"+request.getParameter("proCompanyId"));
+//		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>house.name   >>>"+request.getParameter("house.name"));
 		
 		
+		if(companyId != null){
+			user.setCompany(companyService.get(companyId)); 
+		}
 		
-//		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>getUserType                    >>>"+user.getUserType());
+		if(houseIds != null){
+			String labelName = request.getParameter("house.name");
+			House house = new House(houseIds);
+			house.setName(labelName);
+			user.setHouse(house);
+		}
+		
+	
         Page<User> page = userService.findUser(new Page<User>(request, response), user); 
+        
+   
+        
+        
         model.addAttribute("page", page);
+    	model.addAttribute("proCompanyId", companyId);
+    	model.addAttribute("company", companyId);
+    	model.addAttribute("company.id", companyId);
+    	model.addAttribute("houseIds", houseIds);
+    	model.addAttribute("userType", userType);
+
+    	
+    	
+		
+//		model.addAttribute("url", request.getParameter("url")); 	// 树结构数据URL
+//		model.addAttribute("extId", request.getParameter("extId")); // 排除的编号ID
+//		model.addAttribute("checked", request.getParameter("checked")); // 是否可复选
+//		model.addAttribute("selectIds", request.getParameter("selectIds")); // 指定默认选中的ID
+//		model.addAttribute("nodesLevel", request.getParameter("nodesLevel"));	// 菜单展开层数
+//		model.addAttribute("proCompanyId", request.getParameter("proCompanyId")); 	// 树结构数据URL
+    	
 		return "modules/pms/userList";
 	}
 	
@@ -159,7 +195,8 @@ public class OwnerController extends BaseController {
 //	     }
 	     
 //	     System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>user.getHouseList().size()>>>"+user.getHouseList().get(0).getName());
-
+//	     System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>11111111111>>>"+user.getId());
+//	     System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>11111111111>>>"+user.getHouseList().size());
 	     
 	    model.addAttribute("houseList",user.getHouseList());
 //		user.setUserType("2");
@@ -200,10 +237,7 @@ public class OwnerController extends BaseController {
 			}
 		}
 		user.setRoleList(roleList);
-		
-		
 
-		
 //		List<Fees> houseList = Lists.newArrayList();
 //		List<String> feesIdList = user.getHouseList()
 //		for (House r : houseListService.findAllList()){
@@ -221,6 +255,12 @@ public class OwnerController extends BaseController {
 		if (user.getLoginName().equals(UserUtils.getUser().getLoginName())){
 			UserUtils.getCacheMap().clear();
 		}
+		
+		
+//		String proCompanyId = user.getCompany().getId();
+//		redirectAttributes.addAttribute("proCompanyId",proCompanyId);
+//		System.out.print(">>>>>>>>>>>>>>>>>>>>>>00000000000000000 111111111111111 proCompanyId>>>>>>>>>>>>>>"+request.getParameter("company.id"));
+		
 		addMessage(redirectAttributes, "保存用户'" + user.getLoginName() + "'成功");
 		return "redirect:"+Global.getAdminPath()+"/pms/user/?repage";
 	}
@@ -251,7 +291,40 @@ public class OwnerController extends BaseController {
             String fileName = "用户数据"+DateUtils.getDate("yyyyMMddHHmmss")+ fileSuffix; 
 //    		Page<User> page = userService.findUser(new Page<User>(request, response, -1), user); 
 //            new ExportExcel("用户数据", User.class).setDataList(page.getList()).write(response, fileName).dispose();
-    		List ls = userService.findAll();
+
+    		
+            if(user == null) user = new User();
+
+            String houseIds = request.getParameter("houseIds");
+    		String companyId = request.getParameter("proCompanyId");
+//    		String companyId = request.getParameter("company.id");
+    		String userType = request.getParameter("userType");
+    		
+
+//    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>houseIds   >>>"+request.getParameter("houseIds"));
+//    		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>houseIds   >>>"+user.getHouseIds());
+    		
+    		user.setHouseIds(houseIds);
+    		 
+    		
+    		Office company = user.getCompany();
+//    		Office office = user.getOffice();
+    		if(company == null) company = new Office("1");
+
+    		
+    		if (StringUtils.isNotBlank(companyId)){
+    			user.setCompany(new Office(companyId));
+    		}
+
+    		if (StringUtils.isNotBlank(userType)){
+    			user.setUserType(userType);
+    		}			            
+
+   
+    		List<User> ls = userService.findAllUser(user);
+//    		List<User> ls = userService.findAllUser(user);
+
+//    		List<User> ls = userService.findAll();
     		new ExportExcel("用户数据", User.class).setDataList(ls).write(response, fileName).dispose();
     		return null;
 		} catch (Exception e) {
@@ -279,9 +352,9 @@ public class OwnerController extends BaseController {
 //			Map userMap = Collections3.extractToMap(allUserList,"loginName");
 			
 			List<Office> allOfficeList = companyService.findAll();
-			Map officeMap = Collections3.extractToMap(allOfficeList,"id");		
-//			Map officeMapName = Collections3.extractToMap(allOfficeList,"name");
-			Office branch = (Office)officeMap.get("2");
+			Map officeMap = Collections3.extractToMap(allOfficeList,"code");	
+			
+			
 			 List<Role> roleList6 = Lists.newArrayList();
 			 List<Role> roleList7 = Lists.newArrayList();
 			 
@@ -289,81 +362,117 @@ public class OwnerController extends BaseController {
 			
 			
 			for (User user : list){
-				
 				String loginName = StringUtils.trim(user.getLoginName());
-				
-				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>loginName>>>>>>>>>>111111>>"+ loginName);
+				BigDecimal bddd = new BigDecimal(loginName);
+				loginName = bddd.toPlainString();
+
+//				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>loginName>>>>>>>>>>111111>>"+ loginName+"_"+DictUtils.getDictValue(user.getUserType(), "sys_user_type", ""));
 //				System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>user.getOffice()>>>>>>>>>>111111>>"+ user.getCompanyName());
 				try{
-					
-					
-					
 //					BigDecimal bd = new BigDecimal(user.getPhone()); 
 //					System.out.println(bd.toPlainString()); 
 //					System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>111111>>"+ bd.toPlainString());
+					String companyCode = user.getCompanyCode();
+					Office branch = new Office();
+					if(StringUtils.isBlank(companyCode)){
+						branch = (Office)officeMap.get("0");
+					}else{
+						branch = (Office)officeMap.get(companyCode);
+					}
+
+					user.setUserType(DictUtils.getDictValue(user.getUserType(), "sys_user_type", ""));
+					user.setCompany(branch);
+					user.setOffice(branch);
 					
-					if ("true".equals(checkLoginName("", loginName))){
-//					if (!userMap.containsKey(loginName)){	
-						user.setPassword(UserService.entryptPassword("123456"));
-						user.setEmail(loginName+"@vriche.com");
-						user.setUpdateDate(new Date());
-						user.setCreateDate(new Date());
-						user.setUserType(user.getUserTypeStr());
-//						if(user.getCompany() == null){
-//							user.setCompany(branch);
-//						}
-						if(user.getOffice() == null){
-							user.setOffice(branch);
-						}
-						
-						if("2".equals(user.getUserType())){
-							user.setRoleList(roleList6);
-						}else{
-							user.setRoleList(roleList7);
-						}
-						
-//						Office branch = new Office();
-//						branch.setId("2"); 
-						
-//						Office company = (Office)officeMapName.get(user.getCompanyName());
-//						System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>user.getUserType()>>>>>>>>>>111111>>"+ user.getUserType());
-//						user.setCompany(company);
-//						user.setOffice(branch);
-						user.setLoginName(loginName);
-						user.setNo(loginName);
-						user.setName(StringUtils.trim(user.getName()));
-//						user.setUserType("2");
-						
-//						Office office = (Office)officeMapName.get("2");
-						
-//						System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>user.getOffice()>>>>>>>>>>111111>>"+ branch.getName());
+					if("2".equals(user.getUserType())){
+						user.setRoleList(roleList6);
+					}else{
+						user.setRoleList(roleList7);
+					}
+					user.setLoginName(loginName);
+					
+					String userName = StringUtils.trim(user.getName());
+					if(StringUtils.isBlank(userName)){
+						user.setName(loginName);
+					}else{
+						user.setName(userName);
+					}
+
+					try{
 						BigDecimal bd = new BigDecimal(StringUtils.getNullValue(StringUtils.trim(user.getPhone()), "0"));
 						String phone = bd.toPlainString();
 						phone = "0".equals(phone)?"":phone;
-						user.setPhone(phone);
-						
+						user.setPhone(phone);	
+					}catch (Exception ex) {
+						user.setPhone(StringUtils.trim(user.getPhone()));	
+					}
+
 					
-						
-//						user.setCompany(companyService.F);
-//						if(StringUtils.isBlank(user.getEmail())){
-//							user.setEmail(user.getLoginName()+"@vriche.com");
-//						}
-//						if(StringUtils.isBlank(user.getNo())){
-//							user.setNo(user.getLoginName());
-//						}						
-						
-//						System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>222222>>"+user.getPhone());
-						
-						BeanValidators.validateWithException(validator, user);
-						
-//						System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>222222>>"+user.getPhone());
-						
-						userService.saveUser(user);
+					try{
+						BigDecimal bd2 = new BigDecimal(StringUtils.getNullValue(StringUtils.trim(user.getMobile()), "0"));
+						String mobile = bd2.toPlainString();
+						mobile = "0".equals(mobile)?"":mobile;
+						user.setMobile(mobile);	
+					}catch (Exception ex) {
+						user.setMobile(StringUtils.trim(user.getMobile()));	
+					}
+					
+					try{
+						BigDecimal bd3 = new BigDecimal(StringUtils.getNullValue(StringUtils.trim(user.getMobile2()), "0"));
+						String mobile2 = bd3.toPlainString();
+						mobile2 = "0".equals(mobile2)?"":mobile2;
+						user.setMobile2(mobile2);	
+					}catch (Exception ex) {
+						user.setMobile2(StringUtils.trim(user.getMobile2()));	
+					}
+					
+					
+					
+//					if ("true".equals(checkLoginName("", loginName))){
+//					user.setPassword(UserService.entryptPassword("123456"));
+//					user.setEmail(loginName+"@vriche.com");
+//					successNum++;
+//				}else{
+//					User u = UserUtils.getUserByLoginName(loginName);
+//					user.setId(u.getId());
+//					user.setPassword(u.getPassword());
+//					failureMsg.append("<br/>A登录名 "+ loginName +" 已存在; ");
+//					failureNum++;
+//				}				
+					
+					
+					
+					User u = UserUtils.getUserByLoginName(loginName);
+
+					if(u == null){
+						user.setPassword(UserService.entryptPassword("123456"));
+						user.setEmail(loginName+"@vriche.com");
 						successNum++;
+						
+//						String curPhone = user.getPhone();
+//						Device device = new Device();
+//						device.setCode(curPhone);
+//						deviceService.save(device);
 					}else{
+						user.setId(u.getId());
+						user.setPassword(u.getPassword());
 						failureMsg.append("<br/>A登录名 "+ loginName +" 已存在; ");
 						failureNum++;
+						//由于设备中的电话费用的编码采用电话编码，如果电话改变需要同时改变设备中的电话编码
+						String oldPhone = u.getPhone();
+						String curPhone = user.getPhone();
+						if(StringUtils.isNotBlank(oldPhone)&&StringUtils.isNotBlank(curPhone)&&!curPhone.equals(oldPhone)){
+							Device device = deviceService.findByPhone(oldPhone); 
+							device.setCode(curPhone);
+							deviceService.save(device);
+						}
+						
 					}
+
+					
+					BeanValidators.validateWithException(validator, user);
+					userService.saveUser(user);
+					
 				}catch(ConstraintViolationException ex){
 					failureMsg.append("<br/>B登录名 "+ loginName +" 导入失败：");
 					List<String> messageList = BeanValidators.extractPropertyAndMessageAsList(ex, ": ");
@@ -407,6 +516,18 @@ public class OwnerController extends BaseController {
 		if (loginName !=null && loginName.equals(oldLoginName)) {
 			return "true";
 		} else if (loginName !=null && userService.getUserByLoginName(loginName) == null) {
+			return "true";
+		}
+		return "false";
+	}
+	
+	@ResponseBody
+//	@RequiresPermissions("pms:user:edit")
+	@RequestMapping(value = "checkPhone")
+	public String checkPhone(String oldPhone, String curPhone) {
+		if (curPhone !=null && curPhone.equals(oldPhone)) {
+			return "true";
+		} else if (curPhone !=null && userService.getUserByLoginName(curPhone) == null) {
 			return "true";
 		}
 		return "false";
@@ -495,7 +616,7 @@ public class OwnerController extends BaseController {
 			    }
 					map.put("id", e.getId());
 					map.put("pId", e.getParent()!=null?e.getParent().getId():0);
-					map.put("name", e.getName());
+					map.put("name", "("+e.getCode()+")"+e.getName());
 					mapList.add(map); 	
 		
 			    
@@ -505,7 +626,71 @@ public class OwnerController extends BaseController {
 		return mapList;
 	}
 	
+	@ResponseBody
+	@RequestMapping(value = "getHousesByUser")
+	public Map<String, String> getHousesByUser(String loginName,HttpServletRequest request, HttpServletResponse response) {	 
+		Map<String, String> map = Maps.newHashMap();
+		
+		map.put("count","0");
+		
+		
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>getHousesByUser    loginName           >>>"+ loginName);
+		
+		User owner = userService.getUserByLoginName(loginName);
+		
+		if(owner != null){
+			
+			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>getHousesByUser       owner.getName()             >>>"+owner.getName());
+			
+			House h = new House();
+			h.setOwner(owner);
+			List<House> houseList =houseService.findAllHouse(h);
+			
+			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>getHousesByUser      houseList.size()             >>>"+houseList.size());
+			
+//			House[] array= (House[]) houseList.toArray();
+			
+//			House[] array = houseList.toArray(new House[houseList.size()]);
+			
+			JsonMapper jsonMapper = JsonMapper.getInstance();
 
+//			var houseId = data.houses[i].id;
+//			var officeId =  data.user.company.id;
+			
+			int count =  houseList.size();
+			int k = 0;
+			
+			
+			StringBuffer sb = new StringBuffer();
+			sb.append("[");
+            for(House house:houseList){
+            	k++;
+            	User user = house.getOwner();
+            	Map<String,String> mpp = Maps.newHashMap();
+            	
+            	String deviceType = "3".equals(user.getUserType())?"2":"3";
+            	mpp.put("houseId", house.getId());
+            	mpp.put("houseFullName", house.getFullName());
+            	mpp.put("ownerName", user.getName());
+            	mpp.put("officeId",  user.getCompany().getId());
+            	mpp.put("deviceType", deviceType);
+            	
+    			sb.append(jsonMapper.toJson(mpp));
+    			if(count>1&&k<count)  sb.append(",");
+            }
+            sb.append("]");
+            
+        	System.out.println(">>>>>>>>>>>>>>>>>>>>>>>getHousesByUser      houseList.size()             >>>"+sb.toString());
+            
+        	map.put("count",count+"");
+        	map.put("data",sb.toString());
+
+		}
+		
+
+	
+		return map;
+	}
     
 //	@InitBinder
 //	public void initBinder(WebDataBinder b) {

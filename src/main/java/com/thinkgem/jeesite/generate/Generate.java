@@ -46,7 +46,7 @@ public class Generate {
 
 		String moduleName = "pms"; // 模块名，例：sys
 		String subModuleName = ""; // 子模块名（可选）
-		String className = "paymentPre"; // 类名，例：user
+		String className = "deviceDetail"; // 类名，例：user
 		String classAuthor = "vriche"; // 类作者，例：ThinkGem
 		String functionName = "单元信息"; // 功能名，例：用户
 

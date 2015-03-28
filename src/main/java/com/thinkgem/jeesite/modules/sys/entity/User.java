@@ -40,6 +40,7 @@ import com.thinkgem.jeesite.common.utils.Collections3;
 import com.thinkgem.jeesite.common.utils.excel.annotation.ExcelField;
 import com.thinkgem.jeesite.common.utils.excel.fieldtype.OfficeType;
 import com.thinkgem.jeesite.common.utils.excel.fieldtype.RoleListType;
+import com.thinkgem.jeesite.common.utils.excel.fieldtype.UserType;
 import com.thinkgem.jeesite.modules.pms.entity.House;
 
 /**
@@ -58,7 +59,7 @@ public class User extends IdEntity<User> {
 	private Office office;	// 归属部门
 	private String loginName;// 登录名
 	private String password;// 密码
-	private String no;		// 工号
+	private String no;		// 查询编码
 	private String name;	// 姓名
 	private String email;	// 邮箱
 	private String phone;	// 电话
@@ -69,6 +70,8 @@ public class User extends IdEntity<User> {
 	private Date loginDate;	// 最后登陆日期
 	
 	private String paperworkCode;	// 证件号码
+	private String companyCode;	// 单位编码
+	
 	
 	
 
@@ -78,14 +81,31 @@ public class User extends IdEntity<User> {
 	private List<House> houseList = Lists.newArrayList(); // 拥有费用列表
 	
 	private String houseIds;
+
+	private House house;
 	
+
+
+
+
+
+
 	private String userTypeStr;// 用户类型
+	
+	private String houseNames ="";// 用户类型
+	
+	
+	private List<String> userIdList = Lists.newArrayList(); 
 	
 	
 //	private List<Fees> feesList = Lists.newArrayList(); // 拥有费用列表  根据房产查找费用   因为费用是直接跟房产挂钩 一个房产可以拥有多个设备，也包含公摊设备
 
 	
 	
+
+
+
+
 
 
 
@@ -116,6 +136,7 @@ public class User extends IdEntity<User> {
 	
 	
 
+
 //	public List<Fees> getFeesList() {
 //		List<Fees> feList = Lists.newArrayList();
 //		for (House house : houseList) {
@@ -131,14 +152,39 @@ public class User extends IdEntity<User> {
 //		this.feesList = feesList;
 //	}
 
+	
+	
+//	@Length(min=1, max=100)
+	@ExcelField(title="查询编码",  align=1, sort=1)
+	public String getNo() {
+		return no;
+	}
 
+	public void setNo(String no) {
+		this.no = no;
+	}
+	
+	
+
+	
+	
+	@Transient
+	@ExcelField(title="单位编码",  align=1, sort=2,value="Office.code")
+	public String getCompanyCode() {
+		return companyCode;
+	}
+
+	public void setCompanyCode(String companyCode) {
+		this.companyCode = companyCode;
+	}
+	
 	@ManyToOne
 	@JoinColumn(name="company_id")
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JsonIgnore
 	@NotNull(message="归属公司不能为空")
 //	@ExcelField(title="归属公司", align=2, sort=20,value="Office.id")
-	@ExcelField(title="归属公司", align=2, sort=1, fieldType=OfficeType.class)
+	@ExcelField(title="归属公司", align=1, sort=3, fieldType=OfficeType.class)
 	public Office getCompany() {
 		return company;
 	}
@@ -152,7 +198,7 @@ public class User extends IdEntity<User> {
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JsonIgnore
 //	@NotNull(message="归属部门不能为空")
-	@ExcelField(title="归属部门", align=2, sort=8, fieldType=OfficeType.class)
+//	@ExcelField(title="归属部门", type=2, align=1, sort=8, fieldType=OfficeType.class)
 	public Office getOffice() {
 		return office;
 	}
@@ -161,15 +207,7 @@ public class User extends IdEntity<User> {
 		this.office = office;
 	}
 
-	@Length(min=1, max=100)
-	@ExcelField(title="登录名", align=2, sort=2)
-	public String getLoginName() {
-		return loginName;
-	}
 
-	public void setLoginName(String loginName) {
-		this.loginName = loginName;
-	}
 
 	@JsonIgnore
 	@Length(min=1, max=100)
@@ -181,15 +219,25 @@ public class User extends IdEntity<User> {
 		this.password = password;
 	}
 
+	
 	@Length(min=1, max=100)
-	@ExcelField(title="姓名", align=2, sort=3)
+	@ExcelField(title="住户编码", align=2, sort=4)
+	public String getLoginName() {
+		return loginName;
+	}
+
+	public void setLoginName(String loginName) {
+		this.loginName = loginName;
+	}
+	@Length(min=1, max=100)
+	@ExcelField(title="姓名", align=2, sort=5)
 	public String getName() {
 		return name;
 	}
 	
 	
 //	@Length(min=1, max=100)
-	@ExcelField(title="证件号码", align=2, sort=4)
+	@ExcelField(title="证件号码", align=3, sort=6)
 	public String getPaperworkCode() {
 		return paperworkCode;
 	}
@@ -200,7 +248,7 @@ public class User extends IdEntity<User> {
 	
 	
 	@Length(min=0, max=200)
-	@ExcelField(title="电话", align=2, sort=5)
+	@ExcelField(title="电话", align=2, sort=7)
 	public String getPhone() {
 		return phone;
 	}
@@ -210,7 +258,7 @@ public class User extends IdEntity<User> {
 	}
 
     @Length(min=0, max=200)
-	@ExcelField(title="手机", align=2, sort=6)
+	@ExcelField(title="手机", align=2, sort=8)
 	public String getMobile() {
 		return mobile;
 	}
@@ -221,7 +269,7 @@ public class User extends IdEntity<User> {
 	
 	
     @Length(min=0, max=200)
-	@ExcelField(title="手机2", align=2, sort=6)
+	@ExcelField(title="手机2", align=2, sort=9)
 	public String getMobile2() {
 		return mobile2;
 	}
@@ -230,7 +278,7 @@ public class User extends IdEntity<User> {
 		this.mobile2 = mobile2;
 	}
 	@Email @Length(min=0, max=200)
-	@ExcelField(title="邮箱", align=1, sort=7)
+	@ExcelField(title="邮箱", align=1, sort=10)
 	public String getEmail() {
 		return email;
 	}
@@ -240,40 +288,23 @@ public class User extends IdEntity<User> {
 	}
 	
 	
-	@Length(min=1, max=100)
-	@ExcelField(title="工号", align=2, sort=9)
-	public String getNo() {
-		return no;
-	}
 
-	public void setNo(String no) {
-		this.no = no;
-	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
-
-
-	
-	@Transient
-	@ExcelField(title="备注", align=1, sort=13)
-	public String getRemarks() {
-		return remarks;
-	}
-	
 	@Length(min=0, max=100)
+//	@Transient
+//	@ExcelField(title="用户类型", type=1,align=2, sort=11,dictType="sys_user_type")
+	@ExcelField(title="用户类型", align=2, sort=11,fieldType=UserType.class)
 	public String getUserType() {
 		return userType;
 	}
-
-	public void setUserType(String userType) {
-		this.userType = userType;
-	}
+	
 
 	@Transient
-	@ExcelField(title="用户类型", align=2, sort=10)
+//	@ExcelField(title="用户类型", type=2,align=2, sort=11)
 	public String getUserTypeStr() {
 		return userTypeStr;
 	}
@@ -282,13 +313,29 @@ public class User extends IdEntity<User> {
 		this.userTypeStr = userTypeStr;
 	}
 	
+	
+	public void setUserType(String userType) {
+		this.userType = userType;
+	}
+
+	
 	@Transient
-	@ExcelField(title="创建时间", type=0, align=1, sort=11)
+	@ExcelField(title="备注", type=2,align=1, sort=13)
+	public String getRemarks() {
+		return remarks;
+	}
+	
+
+
+
+	
+	@Transient
+//	@ExcelField(title="创建时间", type=0, align=1, sort=11)
 	public Date getCreateDate() {
 		return createDate;
 	}
 
-	@ExcelField(title="最后登录IP", type=1, align=1, sort=100)
+//	@ExcelField(title="最后登录IP", type=1, align=1, sort=100)
 	public String getLoginIp() {
 		return loginIp;
 	}
@@ -298,7 +345,7 @@ public class User extends IdEntity<User> {
 	}
 
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	@ExcelField(title="最后登录日期", type=1, align=1, sort=11)
+//	@ExcelField(title="最后登录日期", type=1, align=1, sort=11)
 	public Date getLoginDate() {
 		return loginDate;
 	}
@@ -307,7 +354,18 @@ public class User extends IdEntity<User> {
 		this.loginDate = loginDate;
 	}
 	
+	@Transient
+	@ExcelField(title="拥有房产", type=1,align=1, sort=50)
+	public String getHouseNames() {
+		for (House e : this.houseList){
+			houseNames += e.getFullName();
+		}
+		return houseNames;
+	}
 
+	public void setHouseNames(String houseNames) {
+		this.houseNames = houseNames;
+	}
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name = "sys_user_role", joinColumns = { @JoinColumn(name = "user_id") }, inverseJoinColumns = { @JoinColumn(name = "role_id") })
@@ -316,7 +374,7 @@ public class User extends IdEntity<User> {
 	@NotFound(action = NotFoundAction.IGNORE)
 	@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 	@JsonIgnore
-	@ExcelField(title="拥有角色", align=1, sort=12, fieldType=RoleListType.class)
+	@ExcelField(title="拥有角色",align=1, sort=12, fieldType=RoleListType.class)
 	public List<Role> getRoleList() {
 		return roleList;
 	}
@@ -414,7 +472,25 @@ public class User extends IdEntity<User> {
 	public void setHouseIds(String houseIds) {
 		this.houseIds = houseIds;
 	}
+	@Transient
+	public House getHouse() {
+		return house;
+	}
 
+	public void setHouse(House house) {
+		this.house = house;
+	}
+
+	
+	@Transient
+	public List<String> getUserIdList() {
+		return userIdList;
+	}
+
+	public void setUserIdList(List<String> userIdList) {
+		this.userIdList = userIdList;
+	}
+	
 	@Override
 	public String toString() {
 		return "User [company=" + company + ", office=" + office

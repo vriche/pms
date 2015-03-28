@@ -72,13 +72,16 @@ public class UserService extends BaseService  {
 	public Page<User> findUser(Page<User> page, User user) {
 		DetachedCriteria dc = userDao.createDetachedCriteria();
 		User currentUser = UserUtils.getUser();
-
 		dc.createAlias("company", "company");
 		dc.createAlias("office", "office");
 	
 
 		List<House>  houseList = HouseUtils.getHousesList(user.getHouseIds());
 		List<String>  userIdList  = HouseUtils.getUsersByHouseIds(houseList);
+		
+//		System.out.println("HouseUtils.getHousesList>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"+houseList.size());
+		
+//		user.setHouseList(houseList);
 
 		if(userIdList.size() > 0){
 			dc.add(Restrictions.in("id",userIdList));
@@ -137,6 +140,76 @@ public class UserService extends BaseService  {
 	
 		return userDao.find(page, dc);
 	}
+	
+	
+	public List<User> findAllUser(User user) {
+		DetachedCriteria dc = userDao.createDetachedCriteria();
+		User currentUser = UserUtils.getUser();
+
+		dc.createAlias("company", "company");
+		dc.createAlias("office", "office");
+	
+
+		List<House>  houseList = HouseUtils.getHousesList(user.getHouseIds());
+		List<String>  userIdList  = HouseUtils.getUsersByHouseIds(houseList);
+
+		if(userIdList.size() > 0){
+			dc.add(Restrictions.in("id",userIdList));
+		}
+		
+		if (user.getCompany()!=null && StringUtils.isNotBlank(user.getCompany().getId())){
+			dc.add(Restrictions.or(
+					Restrictions.eq("company.id", user.getCompany().getId()),
+					Restrictions.like("company.parentIds", "%,"+user.getCompany().getId()+",%")
+					));
+		}
+		
+		if (user.getOffice()!=null && StringUtils.isNotBlank(user.getOffice().getId())){
+			dc.add(Restrictions.or(
+					Restrictions.eq("office.id", user.getOffice().getId()),
+					Restrictions.like("office.parentIds", "%,"+user.getOffice().getId()+",%")
+					));
+		}
+		
+		
+//		dc.add(Restrictions.like("userType", "2")); 
+
+		if (StringUtils.isNotEmpty(user.getUserType())){
+			dc.add(Restrictions.eq("userType", user.getUserType()));
+		}
+		
+		// 如果不是超级管理员，则不显示超级管理员用户
+		if (!currentUser.isAdmin()){
+			dc.add(Restrictions.ne("id", "1")); 
+		}
+		
+		dc.add(dataScopeFilter(currentUser, "office", ""));
+		
+		if (StringUtils.isNotEmpty(user.getLoginName())){
+			dc.add(Restrictions.like("loginName", "%"+user.getLoginName()+"%"));
+		}
+		if (StringUtils.isNotEmpty(user.getName())){
+			dc.add(Restrictions.like("name", "%"+user.getName()+"%"));
+		}
+		
+		if (StringUtils.isNotEmpty(user.getPhone())){
+			dc.add(Restrictions.like("phone", "%"+user.getPhone()+"%"));
+		}
+		
+		if (StringUtils.isNotEmpty(user.getPhone())){
+			dc.add(Restrictions.like("mobile", "%"+user.getMobile()+"%"));
+		}
+		
+//		if (!StringUtils.isNotEmpty(page.getOrderBy())){
+//			dc.addOrder(Order.asc("company.code")).addOrder(Order.asc("office.code")).addOrder(Order.desc("name"));
+//		}
+		
+//		dc.addOrder(Order.asc("loginName"));
+
+		dc.add(Restrictions.eq(User.FIELD_DEL_FLAG, User.DEL_FLAG_NORMAL));
+	
+		return userDao.find(dc);
+	}
 
 	//取用户的数据范围
 	public String getDataScope(User user){
@@ -146,6 +219,7 @@ public class UserService extends BaseService  {
 	public User getUserByLoginName(String loginName) {
 		return userDao.findByLoginName(loginName);
 	}
+	
 
 	@Transactional(readOnly = false)
 	public void saveUser(User user) {
@@ -154,8 +228,10 @@ public class UserService extends BaseService  {
 		userDao.clear();
 		userDao.save(user);
 		systemRealm.clearAllCachedAuthorizationInfo();
+		
+		
 		// 同步到Activiti
-		saveActiviti(user);
+//		saveActiviti(user);
 	}
 
 	@Transactional(readOnly = false)
@@ -458,6 +534,7 @@ public class UserService extends BaseService  {
 	///////////////// Synchronized to the Activiti end //////////////////
 	   public List<User> findAll(){
 			DetachedCriteria dc = userDao.createDetachedCriteria();
+//			dc.add(dataScopeFilter(UserUtils.getUser(), dc.getAlias(), ""));
 			dc.add(Restrictions.eq(User.FIELD_DEL_FLAG, User.DEL_FLAG_NORMAL));
 			return userDao.find(dc);
 		}

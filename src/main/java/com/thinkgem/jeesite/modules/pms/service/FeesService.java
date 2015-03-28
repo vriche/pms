@@ -45,7 +45,8 @@ public class FeesService extends BaseService {
 		return feesDao.get(id);
 	}
 	
-	public Page<Fees> find(Page<Fees> page, Fees fees) {
+	
+	private DetachedCriteria findDetachedCriteria(Fees fees){
 		DetachedCriteria dc = feesDao.createDetachedCriteria();
 		
 		if(fees.getCompany() != null){
@@ -75,7 +76,13 @@ public class FeesService extends BaseService {
 		
 		dc.add(Restrictions.eq(Fees.FIELD_DEL_FLAG, Fees.DEL_FLAG_NORMAL));
 		
-		dc.addOrder(Order.asc("code"));
+		return dc;
+	}
+	
+	public Page<Fees> find(Page<Fees> page, Fees fees) {
+		DetachedCriteria dc = findDetachedCriteria(fees);
+		dc.addOrder(Order.asc("sort"));
+		
 		return feesDao.find(page, dc);
 	}
 	
@@ -139,19 +146,19 @@ public class FeesService extends BaseService {
 
 	
 	public List<Device> findList(String houseId){
-		return deviceDao.findAllList(houseId,null);
+		return deviceDao.findAllList(houseId,null,null);
 	}
 	
 
-	public List<Map> findListMap(Fees fees,String houseId){
+	public List<Map> findListMap(Fees fees,String houseId,String enable){
 		List<Map>  feesMap=  Lists.newArrayList();
 		List<Fees> list =  Lists.newArrayList();
 //		List<Device> deviceList = fees.getDeviceList();
 		if(houseId != null){
-			List<Device> deviceList = deviceDao.findAllList(houseId,null);
-			for(Device e:deviceList){
+			List<Device> deviceList = deviceDao.findAllList(houseId,null,enable);
+			for(Device d:deviceList){
 //				    boolean enable =  Boolean.valueOf(e.getEnable()).booleanValue();
-				    Fees fes = e.getFees();
+				    Fees fes = d.getFees();
 					Map<String, Object> map = Maps.newHashMap();
 					String name = fes.getCode()+"_"+fes.getName();
 					

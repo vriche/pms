@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.thinkgem.jeesite.modules.pms.dao.MyBatisPaymentAfterDao">
+
+  <resultMap type="com.thinkgem.jeesite.modules.pms.entity.PaymentAfter" id="paymentAfterResult">
+    <result column="payment_befor_id" property="paymentBefor.id"/>
+    <result column="rec_money" property="recMoney"/>
+  </resultMap>
+    
+    <!-- 调用见 DictService.get 方法 -->
+	<select id="get" resultType="PaymentAfter">
+		select * from pms_payment_after where id=#{id}
+	</select>
+	
+	<!-- 调用见 DictService.find 方法 -->
+	<select id="find"  resultMap="paymentAfterResult">
+		select a.payment_befor_id as payment_befor_id,sum(a.rec_money) as rec_money from pms_payment_after a
+		 left outer join pms_payment_befor b on a.payment_befor_id = b.id 
+		<where>
+			<if test="paymentBefor.id != null and paymentBefor.id != '' and paymentBefor.id != 'null'">
+				and a.payment_befor_id = #{paymentBefor.id} 
+			</if>
+			<if test="paymentBefor.company.id != null and paymentBefor.company.id != '' and paymentBefor.company.id != '0' and paymentBefor.company.id != 'null'">
+				and b.company_id = #{paymentBefor.company.id} 
+			</if>		
+			<if test="paymentBefor.house.id != null and paymentBefor.house.id != '' and paymentBefor.house.id != '0'  and paymentBefor.house.id != 'null'">
+				and b.house_id = #{paymentBefor.house.id} 
+			</if>	
+			<if test="paymentBefor.type != null and paymentBefor.type != '' and paymentBefor.type != 'null'">
+				and b.type = #{paymentBefor.type} 
+			</if>	
+			<if test="paymentBefor.feeCode != null and paymentBefor.feeCode != '' and paymentBefor.feeCode != 'null'">
+				and b.fee_code = #{paymentBefor.feeCode} 
+			</if>		
+			<if test="paymentBefor.firstDate != null and paymentBefor.firstDate != ''">
+				and b.rece_date between #{paymentBefor.firstDate} and #{paymentBefor.lastDate} 
+			</if>				
+			<if test="paymentBefor.payFrom != null and paymentBefor.payFrom != '' and paymentBefor.payFrom != 'null'">
+				and b.pay_from = #{paymentBefor.payFrom} 
+			</if>				
+			and a.del_flag = '0'
+		</where>
+		group by a.payment_befor_id 
+	</select>
+	
+
+	<!-- 调用见 DictService.find 方法 -->
+	<resultMap type="com.thinkgem.jeesite.modules.pms.entity.PaymentAfter" id="paymentAfterResult2">
+	     <result column="device_detail_id" property="deviceDetail.id"/>
+	     <result column="house_id" property="deviceDetail.device.house.id"/>
+	     <result column="house_name" property="deviceDetail.device.house.name"/>
+	     <!-- result column="company_name" property="paymentBefor.company.name"/ -->
+	     <result column="company_name" property="deviceDetail.device.house.owner.company.name"/>
+	     <result column="rece_date" property="paymentBefor.receDate"/>
+	     <result column="fee_code" property="paymentBefor.feeCode"/>
+	     <result column="user_name" property="deviceDetail.device.house.owner.name"/>
+	     <result column="user_login_name" property="deviceDetail.device.house.owner.loginName"/>
+		 <result column="user_mobile" property="deviceDetail.device.house.owner.mobile"/>
+		 <result column="user_phone" property="deviceDetail.device.house.owner.phone"/>
+		 
+		  <result column="fees_name" property="deviceDetail.device.fees.name"/>
+		  <result column="first_date" property="deviceDetail.firstDate"/>
+	      <result column="last_date" property="deviceDetail.lastDate"/>
+	      <result column="usage_amount_sum" property="deviceDetail.sumUsageAmount"/>
+	      <result column="usage_amount" property="deviceDetail.usageAmount"/>
+	      <result column="unit_price" property="deviceDetail.unitPrice"/>
+	      <result column="pay_money" property="deviceDetail.sumPayMoney"/>
+	      <result column="income_money" property="deviceDetail.incomeMoney"/>
+	      
+	      <result column="house_use_area" property="paymentBefor.house.useArea"/>
+  	</resultMap>
+
+	
+	<select id="findGroupByFees" parameterType="hashMap" resultMap="paymentAfterResult2">
+		select 
+		  	a.device_detail_id, 
+		  	Max(h.id) as house_id,
+			Max(h.name) as house_name,
+			Max(of.name) as company_name,
+			b.rece_date,
+			Max(b.fee_code) as fee_code,
+			Max(u.name) as user_name,
+			Max(u.login_name) as user_login_name,
+			Max(u.mobile) as user_mobile,
+			Max(u.phone) as user_phone,
+			Max(u.login_name) as login_name,
+		 	Max(h.use_area) as house_use_area, 
+		 	
+		 	Max(f.name) as fees_name,
+		 	Max(c.first_date) as first_date,
+			Max(c.last_date) as last_date,
+			Max(c.usage_amount) as usage_amount,
+			Max(c.sum_usage_amount) as usage_amount_sum,
+			
+			Max(c.unit_price) as unit_price,
+			Max(c.sum_pay_money) as pay_money,
+			Max(c.income_money) as income_money
+
+		 from pms_payment_after a 
+		 INNER JOIN  pms_payment_befor b on a.payment_befor_id = b.id 
+		 INNER JOIN  pms_device_detail c ON c.id = a.device_detail_id 
+		 INNER JOIN  pms_device d ON d.id = c.device_id 
+		 INNER JOIN  pms_house h ON h.id = d.house_id 
+		 INNER JOIN  pms_fees f ON f.id = d.fees_id 
+		 INNER JOIN  sys_user u ON u.id = h.user_id 
+		 INNER JOIN  sys_office of ON of.id = b.company_id 
+
+		<where>
+		
+		   
+		
+			and a.payment_befor_id in
+
+			<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+          	  #{item}
+       		 </foreach>
+			
+			and a.del_flag = '0'	
+			
+		</where>
+
+		group by a.device_detail_id, b.rece_date 
+		
+		order by f.sort,Max(c.last_date) 
+	</select>
+</mapper>

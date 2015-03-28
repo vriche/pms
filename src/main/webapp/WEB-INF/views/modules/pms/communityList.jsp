@@ -13,6 +13,7 @@
 					if(v=="ok"){
 						$("#searchForm").attr("action","${ctx}/pms/community/export");
 						$("#searchForm").submit();
+						$("#searchForm").attr("action","${ctx}/pms/community/list");
 					}
 				},{buttonsFocus:1});
 				top.$('.jbox-body .jbox-icon').css('top','55px');
@@ -55,7 +56,6 @@
 		<input id="pageSize" name="pageSize" type="hidden" value="${page.pageSize}"/>
 
 		 &nbsp;	<label class="control-label">物业公司:</label>
-			
 				<form:select id="proCompanyId" name="proCompanyId" path="proCompany.id"  class="text medium;required">
 					<form:options items="${proCompanyList}" itemLabel="name" itemValue="id" htmlEscape="false" />
 				</form:select>

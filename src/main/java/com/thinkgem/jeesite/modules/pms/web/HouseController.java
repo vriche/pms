@@ -3,8 +3,8 @@
  */
 package com.thinkgem.jeesite.modules.pms.web;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +30,7 @@ import com.thinkgem.jeesite.common.beanvalidator.BeanValidators;
 import com.thinkgem.jeesite.common.config.Global;
 import com.thinkgem.jeesite.common.persistence.Page;
 import com.thinkgem.jeesite.common.utils.Collections3;
+import com.thinkgem.jeesite.common.utils.DateUtils;
 import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.common.utils.excel.ExportExcel;
 import com.thinkgem.jeesite.common.utils.excel.ImportExcel;
@@ -37,6 +38,7 @@ import com.thinkgem.jeesite.common.web.BaseController;
 import com.thinkgem.jeesite.modules.pms.entity.Buildings;
 import com.thinkgem.jeesite.modules.pms.entity.Community;
 import com.thinkgem.jeesite.modules.pms.entity.Device;
+import com.thinkgem.jeesite.modules.pms.entity.DeviceDetail;
 import com.thinkgem.jeesite.modules.pms.entity.Fees;
 import com.thinkgem.jeesite.modules.pms.entity.House;
 import com.thinkgem.jeesite.modules.pms.entity.Unit;
@@ -49,6 +51,7 @@ import com.thinkgem.jeesite.modules.pms.service.UnitService;
 import com.thinkgem.jeesite.modules.pms.service.UserService;
 import com.thinkgem.jeesite.modules.pms.utils.DeviceUtils;
 import com.thinkgem.jeesite.modules.pms.utils.FeesUtils;
+import com.thinkgem.jeesite.modules.pms.utils.HouseUtils;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 import com.thinkgem.jeesite.modules.sys.service.OfficeService;
@@ -80,15 +83,7 @@ public class HouseController extends BaseController {
 	@Autowired
 	private FeesService feesService;
 	
-	
-	
 
-
-	
-	
-	
-	
-	
 	
 	private boolean isNewExcel =  com.thinkgem.jeesite.common.config.Global.getOfficeVersion();
 	
@@ -108,72 +103,13 @@ public class HouseController extends BaseController {
 		if (!user.isAdmin()){
 			house.setCreateBy(user);
 		}
-		
-		
-
-		
-		List<Office> proCompanyList =UserUtils.findProCompanyList();
-		
-		Unit unit = new Unit();
-	    Buildings buildings = new Buildings();
-	    Community community = new Community();
-	    Office proCompany = new Office();
-	    
-		String proCompanyId = request.getParameter("unit.buildings.community.proCompany.id");
-		String communityId = request.getParameter("unit.buildings.community.id");
-		String buildingsId = request.getParameter("unit.buildings.id");
-		String unitId = request.getParameter("unit.id");
-
-		if(house.getUnit() == null) house.setUnit(unit);
-		if(house.getUnit().getBuildings() == null) house.getUnit().setBuildings(buildings);
-		if(house.getUnit().getBuildings().getCommunity() == null) house.getUnit().getBuildings().setCommunity(community);
-		if(house.getUnit().getBuildings().getCommunity().getProCompany() == null) house.getUnit().getBuildings().getCommunity().setProCompany(proCompany);
-		
-		
-		if (StringUtils.isNotBlank(proCompanyId)){
-			house.getUnit().getBuildings().getCommunity().getProCompany().setId(proCompanyId);
-		}else{
-			if(proCompanyList.size() > 0){
-				community.setProCompany(proCompanyList.get(0));
-				proCompanyId = community.getProCompany().getId();
-			}
-		}
-		
-		
-		if (StringUtils.isNotBlank(communityId)){
-			house.getUnit().getBuildings().getCommunity().setId(communityId);
-		}
-		
-		
-		if (StringUtils.isNotBlank(buildingsId)){
-			house.getUnit().getBuildings().setId(buildingsId);
-		}		
-		
-		if (StringUtils.isNotBlank(unitId)){
-			house.getUnit().setId(unitId);
-		}			
-		
-		 Page<House> page = new Page<House>(request, response);
-       
-        
-        model.addAttribute("proCompanyList", proCompanyList);
-        
-		 if(proCompanyId != null){
-	        	model.addAttribute("communityList", communityService.findAllCommunity(house.getUnit().getBuildings().getCommunity()));
-	     }
-		 
-		 if(communityId != null){
-	        	model.addAttribute("buildingsList", buildingsService.findAllBuildings(house.getUnit().getBuildings()));
-	     }
-        
-		 if(communityId != null && StringUtils.isNotBlank(communityId)){
-	        	model.addAttribute("unitList", unitService.findAllUnit(house.getUnit()));
-	        	 page = houseService.find2(new Page<House>(request, response), proCompanyId, communityId, buildingsId, unitId,null); 
-	     }             
-        
-		 System.out.println("page.getList().size()>>>>>>>>>>>>>>>>>111111111111111111>    2222222         333333333>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+page.getList().size());
-		 page.setCount(page.getList().size());
-		 model.addAttribute("page", page);
+		HouseUtils.getObjFromReq(house,  request,response, model,1,"house");
+ 		Page<House> page = new Page<House>(request, response);
+// 		String communityId = request.getParameter("unit.buildings.community.id");
+// 		if(StringUtils.isNotBlank(communityId)){
+ 			houseService.findPage(page,house,null,0);
+// 		}
+		model.addAttribute("page", page);
         
 		return "modules/pms/houseList";
 	}
@@ -188,21 +124,27 @@ public class HouseController extends BaseController {
 
 		if(house.getUnit() == null) house.setUnit(new Unit());
 		String unitId = house.getUnit().getId();
+		
+		String proCompanyId = house.getUnit().getBuildings().getCommunity().getProCompany().getId();
+		
+//		System.out.println("proCompanyId>>>>>>>>>>>>>>>>>111111111111111111>>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+proCompanyId);
+//		System.out.println("unitId>>>>>>>>>>>>>>>>>111111111111111111>>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+unitId);
+		
 
 		if (StringUtils.isNotBlank(unitId)){
 			communityList = communityService.findAllCommunity(house.getUnit().getBuildings().getCommunity());
 			buildingsList = buildingsService.findAllBuildings(house.getUnit().getBuildings());
 			unitList = unitService.findAllUnit(house.getUnit());
+		}else{
+			communityList = communityService.findAllCommunity(house.getUnit().getBuildings().getCommunity());
 		}
 		
 		model.addAttribute("proCompanyList", UserUtils.findProCompanyList());
 		model.addAttribute("communityList", communityList);
 		model.addAttribute("buildingsList", buildingsList);
 		model.addAttribute("unitList", unitList);
-		model.addAttribute("ownerList",  userService.findAll());
-		
-		model.addAttribute("feesList",  feesService.findAllList());
-		
+//		model.addAttribute("ownerList",  userService.findAll());
+		model.addAttribute("feesList",  FeesUtils.getALLFees(proCompanyId));
 		model.addAttribute("house", house);
 		
 		return "modules/pms/houseForm";
@@ -214,13 +156,17 @@ public class HouseController extends BaseController {
 		if (!beanValidator(model, house)){
 			return form(house, model);
 		}
+		
+
+		
 
 		List<Device> deviceList = Lists.newArrayList(); // 拥有设备
 		List<Device> deviceListNew = Lists.newArrayList(); // 拥有设备
 		
 		List<Device> deviceListDB =  Lists.newArrayList();
 		List<String> feesIdListDB =  Lists.newArrayList();
-		
+		List<Device> deviceListDB2 =  Lists.newArrayList();
+		List<String> feesIdListDB2 =  Lists.newArrayList();
 		
 		List<String> temp =  Lists.newArrayList();
 		List<String> tempOld =  Lists.newArrayList();
@@ -236,11 +182,16 @@ public class HouseController extends BaseController {
 		// 取数据库不存在的元素
 		if(house.getId() != null){
 			unit = house.getUnit();
-			List<Device> ls = deviceService.findAllList(house.getId(),null);
+			List<Device> ls = deviceService.findAllList(house.getId(),null,"1");
+			List<Device> ls2 = deviceService.findAllList(house.getId(),null,"0");
 			house.setDeviceList(ls);
 			deviceListDB = house.getDeviceList();
 			feesIdListDB = house.getFeesIdList();// 已经存在的项目
 			
+			House house2 = new House();
+			house2.setDeviceList(ls2);
+			deviceListDB2 = house2.getDeviceList();
+			feesIdListDB2 = house2.getFeesIdList();// 已经存在的项目
 //			System.out.println("unit>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+unit);
 			System.out.println("deviceListDB.size()>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+deviceListDB.size());
 			
@@ -250,7 +201,7 @@ public class HouseController extends BaseController {
 			
 			tempOld = Collections3.subtract(feesIdListDB, feesIdListDT);
 			
-			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..00000000000000>>>>>>>>>>"+temp.size());
+//			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..00000000000000>>>>>>>>>>"+temp.size());
 		}else{
 			temp = feesIdListDT;
 			unit = unitService.get(house.getUnit().getId());
@@ -264,72 +215,92 @@ public class HouseController extends BaseController {
 		//补集
 		for (String fid : temp) {
 			
-			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>temp>>>>>>>>>"+temp.toString());
-			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>feesIdListDB>>>>>>>>>"+feesIdListDB.toString());
-			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>fid>>>>>>>>>"+fid);
+//			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>temp>>>>>>>>>"+temp.toString());
+//			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>feesIdListDB>>>>>>>>>"+feesIdListDB.toString());
+//			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>feesIdListDB2>>>>>>>>>"+feesIdListDB2.toString());
+//			System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>fid>>>>>>>>>"+fid);
 		
 			
 			    
 			if(!"".equals(fid) && !feesIdListDB.contains(fid)){
-				Device device = new Device();
-				Fees fees = FeesUtils.getFees(fid);
-                    
-//					String communityCode = unit.getBuildings().getCommunity().getCode();
-//					String buildingsCode = unit.getBuildings().getCode();
-//					String unitCode = unit.getCode();
-//					
-//					device.setCode(communityCode +"-"+ buildingsCode +"-"+ unitCode +"-"+ house.getCode()+"-"+fees.getCode());
-					device.setFees(fees);
-//					String defName = fees.getName();
-					device.setName("");
-					//一般设备
-					User user = house.getOwner();
-//					String userType = user.getUserType();
-					String deviceType = "3"; //2 单位  3、个人
-					String userType = user.getUserType(); //2 业主  3、法人
-					String phone = user.getPhone();
-					if("3".equals(userType)){deviceType = "2"; }
-					device.setType(deviceType);
-					device.setParent(new Device("0"));
-					device.setParentIds("0,");
-					device.setHouse(house);
-					
-					DeviceUtils.getCode(device);
-					
-					String feesType = fees.getFeesType();
-					String feesModel = fees.getFeesMode();
-					
-					//公摊
-//					if("2".equals(feesType)){
-//						device.setType("1");
-//						Device dev= new Device();
-//						dev.setFees(fees);
-//						List<Device> ls = deviceService.find(dev);
-//						Device d = ls.get(0);
-//						if(d!= null){
-//							device.setParentIds("0,"+d.getId()+",");
-//							device.setParent(d);
+
+				if(feesIdListDB2.contains(fid)){
+					for (Device d : deviceListDB2) {
+						String f_id = d.getFees().getId();
+						if(f_id.equals(fid)){
+							d.setEnable("1");
+							deviceService.save(d);					
+						}
+					}
+				}else{
+					Device device = new Device();
+					Fees fees = FeesUtils.getFees(fid);
+						device.setFees(fees);
+						device.setName("");
+						//一般设备
+						User user = house.getOwner();
+//						String userType = user.getUserType();
+						String deviceType = "3"; //2 单位  3、个人
+						String userType = user.getUserType(); //2 业主  3、法人
+						String phone = user.getPhone();
+						if("3".equals(userType)){deviceType = "2"; }
+						device.setType(deviceType);
+						device.setParent(new Device("0"));
+						device.setParentIds("0,");
+						device.setHouse(house);
+						
+						DeviceUtils.getCode(device);
+						
+//						String feesType = fees.getFeesType();
+//						String feesModel = fees.getFeesMode();
+						String feesCode = fees.getCode();
+						
+		                   if("A05".equals(feesCode)){
+		                	   if(StringUtils.isNotBlank(phone)){
+		                		   deviceService.save(device);
+		                	   }
+		                   }else{
+		                	   deviceService.save(device);
+		                   }
+		                   
+						
+						//公摊
+//						if("2".equals(feesType)){
+//							device.setType("1");
+//							Device dev= new Device();
+//							dev.setFees(fees);
+//							List<Device> ls = deviceService.find(dev);
+//							Device d = ls.get(0);
+//							if(d!= null){
+//								device.setParentIds("0,"+d.getId()+",");
+//								device.setParent(d);
+//							}
 //						}
-//					}
-					
-//					//固话
-//					if("2".equals(feesType)){
-//						device.setType("2");
-//						User u = house.getOwner();
-//						String phone = u.getPhone();
-//						if (StringUtils.isNotEmpty(phone)){
-//							device.setCode(phone);
+						
+//						//固话
+//						if("2".equals(feesType)){
+//							device.setType("2");
+//							User u = house.getOwner();
+//							String phone = u.getPhone();
+//							if (StringUtils.isNotEmpty(phone)){
+//								device.setCode(phone);
+//							}
 //						}
-//					}
-					 if("5".equals(feesModel) && StringUtils.isBlank(phone)){
-						 if(StringUtils.isNotBlank(phone)){
-							 deviceService.save(device);
-						 }
-					 }else{
-						 deviceService.save(device);
-					 }
-					
-//					deviceList.add(device);
+						
+						
+						
+						
+//						 if("5".equals(feesModel) && StringUtils.isBlank(phone)){
+//							 if(StringUtils.isNotBlank(phone)){
+//								 deviceService.save(device);
+//							 }
+//						 }else{
+//							 deviceService.save(device);
+//						 }
+						
+//						deviceList.add(device);
+				}
+				
 					
 			}
 
@@ -339,21 +310,23 @@ public class HouseController extends BaseController {
 		System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>44444444444444>>>>>>>>>"+temp.toString());
 		//交集
 		if(feesIdListDB.size()>0){
+			
+			//交集  
 			temp2 = Collections3.intersection(feesIdListDT, feesIdListDB);
 			System.out.println("temp2>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+temp2.toString());
 			for (String fid : temp2) {
-				List<Device> ls = deviceService.findAllList(house.getId(),fid);
+				List<Device> ls = deviceService.findAllList(house.getId(),fid,"0");
 				for (Device d : ls) {
 					d.setEnable("1");
 					deviceService.save(d);
 				}
 //				deviceList.addAll(ls);
 			}
-			
+			//差集 
 			List<String> temp3 = Collections3.subtract(feesIdListDB, feesIdListDT);
 			System.out.println("temp3>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+temp3.toString());
 			for (String fid : temp3) {
-				List<Device> ls = deviceService.findAllList(house.getId(),fid);
+				List<Device> ls = deviceService.findAllList(house.getId(),fid,"1");
 				for (Device d : ls) {
 					d.setEnable("0");
 					deviceService.save(d);
@@ -364,30 +337,80 @@ public class HouseController extends BaseController {
 		
 		System.out.println("temp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>555555555>>>>>>>>>"+temp.toString());
 
-//		System.out.print("   feesIdListDB.size() >>>>>>>>>>>>>>"+ feesIdListDB.size());
-//		System.out.print("   house.getHouseFees()>>>>>>>>>>>>>>"+ house.getHouseFees());
-//		System.out.print("  feesIdListDT.size() >>>>>>>>>>>>>>"+ feesIdListDT.size());
-//
-//
-//		for (String s : feesIdListDT) {
-//			System.out.print(">>>>>>>>>>>>>>>>>>>>>>00000000000000000 s>>>>>>>>>>>>>>"+ s);
-//		}
-
-
-		
-//		deviceList = Collections3.union(deviceListDB,deviceListNew);
-//		house.setDeviceList(deviceList);
-
-
+	
 		addMessage(redirectAttributes, "保存'" + house.getName() + "'成功");
+		
+
+		String proCompanyId = house.getUnit().getBuildings().getCommunity().getProCompany().getId();
+		String communityId = house.getUnit().getBuildings().getCommunity().getId();
+		String buildId = house.getUnit().getBuildings().getId();
+		String unitId = house.getUnit().getId();
+//		System.out.print(">>>>>>>>>>>>>>>>>>>>>>00000000000000000 s>>>>>>>>>>>>>>"+proCompanyId);
+//		 model.addAttribute("proCompanyId", proCompanyId);
+		
+		 model.addAttribute("proCompanyList", UserUtils.findProCompanyList());
+		 
+
+	        
+		 if(proCompanyId != null){
+	        	model.addAttribute("communityList", communityService.findAllCommunity(house.getUnit().getBuildings().getCommunity()));
+	     }
+		 
+		 if(communityId != null){
+	        	model.addAttribute("buildingsList", buildingsService.findAllBuildings(house.getUnit().getBuildings()));
+	     }
+        
+		 if(communityId != null && StringUtils.isNotBlank(communityId)){
+	        	 model.addAttribute("unitList", unitService.findAllUnit(house.getUnit()));
+	     }             
+        
+//		 System.out.println("save HOUSE>>>>>>>>>>>>>>>>111111111111111111>    2222222         proCompanyId>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+proCompanyId);
+//		 System.out.println("save HOUSE>>>>>>>>>>>>>>>>111111111111111111>    2222222         unitId>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+unitId);
+//		 System.out.println("save HOUSE>>>>>>>>>>>>>>>>111111111111111111>    2222222         buildId>>>>>>>>>>>>>>>>>>>>>..>>>>>>>>>>"+buildId);
+		 redirectAttributes.addAttribute("unit.buildings.community.proCompany.id", proCompanyId);
+		 redirectAttributes.addAttribute("unit.buildings.community.id", communityId);
+		 redirectAttributes.addAttribute("unit.buildings.id", buildId);
+		 redirectAttributes.addAttribute("unit.id", unitId);
+		
+		
 		return "redirect:"+Global.getAdminPath()+"/pms/house/?repage";
 	}
 	
 //	@RequiresPermissions("pms:house:edit")
 	@RequestMapping(value = "delete")
 	public String delete(String id, RedirectAttributes redirectAttributes) {
-		houseService.delete(id);
+		
 		House house = houseService.get(id);
+		
+		Device dev = new Device();
+		dev.setHouseIds("house"+id+",");
+		List<Device> devList = deviceService.find(dev);
+		for(Device dv:devList){
+//			dv.setHouse(new House("0"));
+			dv.setEnable("0");
+			deviceService.save(dv);
+		}
+	
+		
+		houseService.delete(id);
+		
+		redirectAttributes.addAttribute("unit.buildings.community.id", house.getUnit().getBuildings().getCommunity().getId());
+		redirectAttributes.addAttribute("unit.buildings.id", house.getUnit().getBuildings().getId());
+		redirectAttributes.addAttribute("unit.id", house.getUnit().getId());
+//		redirectAttributes.addAttribute("id", house.getId());
+		
+		
+		addMessage(redirectAttributes, "删除收费项目成功");
+		return "redirect:"+Global.getAdminPath()+"/pms/house/?repage";
+	}
+	
+	
+	@RequestMapping(value = "deletebyuser")
+	public String deletebyuser(String id, String uid,RedirectAttributes redirectAttributes) {
+		
+		House house = houseService.get(id);
+		
+		houseService.delete(id);
 		
 		redirectAttributes.addAttribute("unit.buildings.community.id", house.getUnit().getBuildings().getCommunity().getId());
 		redirectAttributes.addAttribute("unit.buildings.id", house.getUnit().getBuildings().getId());
@@ -401,68 +424,34 @@ public class HouseController extends BaseController {
 	
 	
 	
-	
 	@ResponseBody
 	@RequestMapping(value = "housejson")
 	public Map<String, Object> gethouseJson(String model,HttpServletRequest request, HttpServletResponse response) {
-  		
-  		String unitId = null;
-//  		System.out.println(">>>>>>>>>>>>>>>>>>>>>getBuildingsJson>>>>>>>>>>> communityId >>>>>>>>>>>>>>>>>>>>>>>>>>"+communityId);
-  		
-  		
-  		if("house".endsWith(model)){
-  			unitId = request.getParameter("unit.id"); 
-    	}
-  		
-  		
-  		if("paymentDetail".endsWith(model)){
-  			unitId = request.getParameter("device.house.unit.id");  
-    	}
-  		
-  		if("device".endsWith(model)){
-  			unitId = request.getParameter("house.unit.id");  
-    	}		
-  		
-  		System.out.println(">>>>>>>>>>>>>>>>>>>>>gethouseJson>>>>>>>>>>> unitId >>>>>>>>>>>>>>>>>>>>>>>>>>"+unitId);
-  		
-  		
-  		
 		response.setContentType("application/json; charset=UTF-8");
 		Map<String, Object> map = Maps.newHashMap();
 		map.put("", "");
 		
-	
-		if(unitId != null && StringUtils.isNotBlank(unitId)){
-			House house = new House();
-			
-			house.setUnit(new Unit(unitId));
-			List<House> list = houseService.findAllHouse(house);
-			for(House h:list){
-				User owner = h.getOwner();
-				String userName = owner.getName();
-				String userType = owner.getUserType();
-				String companyName = owner.getCompany().getName();
-				if("2".equals(userType)){
-					map.put(h.getId(), h.getCode()+"("+ userName+")");
-				}else{
-					map.put(h.getId(), companyName);
-					
-				}
-				
-//				map.put(h.getId(), h.getName()+"("+ userName+")");
-			}
-		}
-
+		House house = new House();
+		HouseUtils.getObjFromReq(house, request, response, null, 0, "device");
+		Page<House> page = new Page<House>(request, response, -1);
+		houseService.findPage(page, house, map, 1);
 		return map;
 	}  	
 	
 	
 	 @RequestMapping(value = "import", method=RequestMethod.POST)
-	 public String importFile(MultipartFile file, RedirectAttributes redirectAttributes) {
+//	 public String importFile(MultipartFile file, RedirectAttributes redirectAttributes) {
+	 public String importFile(@RequestParam("cmpid") String cmpid, @RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {	 
+		 
+		 
 			if(Global.isDemoMode()){
 				addMessage(redirectAttributes, "演示模式，不允许操作！");
 				return "redirect:"+Global.getAdminPath()+"/pms/house/?repage";
 			}
+			
+//			 System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>222222222222222 cmpid >>>>>>>>>"+ cmpid);
+//			 System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>222222222222222 file >>>>>>>>>"+ file.getSize());
+			 
 			try {
 				int successNum = 0;
 				int failureNum = 0;
@@ -473,6 +462,8 @@ public class HouseController extends BaseController {
 				List<User> allUserList = userService.findAll();
 				Map userMap = Collections3.extractToMap(allUserList,"loginName");
 				
+//				 System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>222222222222222  list.size() >>>>>>>>>"+ list.size());
+				  
 				List<House> listTemp =  Lists.newArrayList();
 				
 				int i = 0;
@@ -483,10 +474,16 @@ public class HouseController extends BaseController {
 				   Map<String,Unit> mpUnit = new HashMap<String,Unit>();
 				   Map<String,House> mpHouse = new HashMap<String,House>();
 				   
-				   String proCompanyId ="2";
+				   String proCompanyId = cmpid;
+				   
 				   Office office = officeService.get(proCompanyId);
 				   String proCompanyName =  office.getName();
+				   
+//				   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>222222222222222>>>>>>>>>"+proCompanyName);
+				   
 				   List<Fees> feesList = FeesUtils.getALLFees(proCompanyId);
+				   
+//				   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>33333333333>>>>>>>>>"+proCompanyName);
 				   
 				   Map mp_house = new HashMap();   
 
@@ -496,22 +493,22 @@ public class HouseController extends BaseController {
 					try{
 
 						  
-						   String loginName = house.getLoginName();
-						   
+//						   String loginName = house.getLoginName();
+							String loginName = StringUtils.trim(house.getLoginName());
+							BigDecimal bddd = new BigDecimal(loginName);
+							loginName = bddd.toPlainString();
 //						   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>loginName>>>>>>>>>"+ loginName);
 						   String communityName =  house.getCommunityName();
-						   
-						
 //						   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>communityName>>>>>>>>>"+communityName);
 						   String buildingsName = house.getBuildingsName();
 //						   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>buildingsName>>>>>>>>>"+buildingsName);
 						   String unitName = house.getUnitName();
 //						   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>unitName>>>>>>>>>"+unitName);
 						   String houseName = house.getName();
-						   
 //						   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>houseName>>>>>>>>>"+houseName);
-						   loginName =StringUtils.trim(loginName);
+//						   loginName =StringUtils.trim(loginName);
 						   Object obj = userMap.get(loginName);
+						   
 
 						   if(obj instanceof User){
 							   User owner = (User)obj;
@@ -519,85 +516,78 @@ public class HouseController extends BaseController {
 						   }else{
 							   house.setOwner(UserUtils.getUser());
 						   }
-						   
-//						   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>house.getOwner().getName()>>>>>>>>>"+house.getOwner().getName());
-						   
-						   
-				
-//						   System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>111111111111 proCompanyName>>>>>>>>>"+proCompanyName);
-						   
+//						   System.out.println("importFile>>>>>>>>>>>>>>>888888>999999>>>>>>>>>>>>>>>>11111111111>>>>>>>");
 						   House h = houseService.saveForExcel(house,office,mpCommunity,mpBuildings,mpUnit,mpHouse,i);
-						    
-//						    String key3 = proCompanyName+communityName+buildingsName+unitName;
-						    
-//						   House h = new House();
-//						   h.setUnit(mpUnit.get(key3));
-//						   h.setOwner(house.getOwner());
-//						   h.setName(i+"");
-//						   h.setCode(i+"");
-//						   h.setBuildArea(StringUtils.toBigDecimal(house.getBuildAreaStr()));
-//						   h.setUseArea(StringUtils.toBigDecimal(house.getUseAreaStr()));
-//						   h.setNumFloor(new Integer(StringUtils.getNullValue(house.getNumFloorStr(), "1")));
-					  
-//						   String houseId = h.getId();
+//						   System.out.println("importFile>>>>>>>>>>>>>>>888888>999999>>>>>>>>>>>>>>>>2222222222>>>>>>>>");
 						   listTemp.add(h);
+						   
+//						   System.out.println("importFile> h >>>>>>>>>>>>>>888888>999999>>>>>>>>>>>>>>>>333333333>>>>>>>>"+h);
+						   
 						if(h != null){
 							User user = h.getOwner();
 							String userType = user.getUserType(); //2 业主  3、法人
 							String deviceType = "3"; //2 单位  3、个人
-							
-//							System.out.println("importFile>>>>>>>>>>>>>>>>>2>>>>>>>>>>>>>>>>>feesList.size()>>>>>>>>"+feesList.size());
-							
+
 							   for(Fees fees:feesList){
-								   String feesModel = fees.getFeesMode();
-								   Device device = new Device();
-								  
-								   device.setHouse(h);
-								   device.setFees(fees);
-								   device.setParent(new Device());
-								   if("4".equals(feesModel)){ //按使用量
-									   device.setPool("1");
-								   }else{
-									   device.setPool("0");
+//								   String feesModel = fees.getFeesMode();
+								   String feesCode = fees.getCode();
+								   
+								   Device dev = new Device();
+								   dev.setFees(fees);
+								   dev.setHouseIds("house"+h.getId()+",");
+								   List<Device> devList = deviceService.find(dev);
+								   
+//								   System.out.println("importFile> devList.size() "+ fees.getName()+">>>>>>>>>>>>>>888888>999999>>>>>>>>>>>>>>>>333333333>>>>>>>>"+devList.size());
+								   
+								   if(devList.size() == 0){
+									   Device device = new Device();
+									   device.setHouse(h);
+									   device.setFees(fees);
+							
+									   //用户是法人 设备类型是2，表示单位设备
+										if("3".equals(userType)){deviceType = "2"; }
+										device.setType(deviceType);
+										device.setParent(new Device("0"));
+										device.setParentIds("0,");
+									   
+					                   String phone = h.getOwner().getPhone();
+					                   
+					                   if("A05".equals(feesCode)){
+					                	   if(StringUtils.isNotBlank(phone)){
+					                		   deviceService.save(device);
+					                	   }
+					                   }else{
+					                	   deviceService.save(device);
+					                   }
+					                   
+					                   
+//									   if("A05".equals(feesCode) && StringUtils.isBlank(phone)){
+//											  
+//									   }else{
+//											 deviceService.save(device);
+//									   } 
 								   }
-								   
-								   if("3".equals(userType)){
-									   deviceType = "2";
-								   }
-								   device.setType(deviceType);	   
-								   
-				                   String phone = h.getOwner().getPhone();
-								   
 
-									   if("5".equals(feesModel) && StringUtils.isBlank(phone)){
-										  
-									   }else{
-//										   System.out.println("importFile>>>>>>>3>>>>>>>>>>>>>>>>>>>>>>>>>>>feesList.size()>>>>>>>>"+feesList.size());
-										   deviceService.save(device);
-//										   System.out.println("importFile>>>>>>>4>>>>>>>>>>>>>>>>>>>>>>>>>>>feesList.size()>>>>>>>>"+feesList.size());
-									   }
 
-							  
-								   
 							   }		
 						
 							successNum++;
 //							System.out.println("importFile>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>..>h.getFullName>>>>>>>>>"+h.getFullName()+"____"+h.getOwner().getName());
 						}else{
-							failureMsg.append("<br/>登录名1 "+house.getName()+" 已存在; ");
+							failureMsg.append("<br/>房产名1 "+house.getName()+" 已存在; ");
 							failureNum++;
 						}
 						
 						
 					}catch(ConstraintViolationException ex){
-						failureMsg.append("<br/>登录名2 "+house.getName()+" 导入失败：");
+						failureMsg.append("<br/>房产名2 "+house.getName()+" 导入失败：");
 						List<String> messageList = BeanValidators.extractPropertyAndMessageAsList(ex, ": ");
 						for (String message : messageList){
 							failureMsg.append(message+"; ");
 							failureNum++;
 						}
 					}catch (Exception ex) {
-						failureMsg.append("<br/>登录名3 "+ house.getName() +" 导入失败："+ex.getMessage());
+						failureMsg.append("<br/>房产名3 "+ house.getName() +" 导入失败："+ex.getMessage());
 					}
 					
 //					 }
@@ -607,18 +597,90 @@ public class HouseController extends BaseController {
 //				deviceService.saveDeviceByHouseList(proCompanyId,listTemp);
 				
 				if (failureNum>0){
-					failureMsg.insert(0, "，失败 "+failureNum+" 条用户，导入信息如下：");
+					failureMsg.insert(0, "，失败 "+failureNum+" 条房产，导入信息如下：");
 				}
-				addMessage(redirectAttributes, "已成功导入 "+successNum+" 条用户"+failureMsg);
+				addMessage(redirectAttributes, "已成功导入 "+successNum+" 条房产"+failureMsg);
 				
 			} catch (Exception e) {
-				addMessage(redirectAttributes, "导入用户失败！失败信息："+e.getMessage());
+				addMessage(redirectAttributes, "导入房产失败！失败信息："+e.getMessage());
 			}
 			
 			
 			
 			return "redirect:"+Global.getAdminPath()+"/pms/house/?repage";
 	    }
+	 
+
+	    @RequestMapping(value = "export", method=RequestMethod.POST)
+	    public String exportFile(House house, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes) {
+			try {
+				String fileSuffix = isNewExcel?".xlsx":".xls";
+	            String fileName = "房屋数据"+DateUtils.getDate("yyyyMMddHHmmss")+ fileSuffix; 
+	        
+	    		getHouseParam(house,request);
+	    		Page<House> page = new Page<House>(request, response,-1);
+	    		houseService.findPage(page,house,null,0);
+
+	    		List<House> ls = page.getList();
+	    		 
+	    		for (House h : ls){
+	    			h.setLoginName(h.getOwner().getLoginName());
+	    			h.setCommunityName(h.getUnit().getBuildings().getCommunity().getName());
+	    			h.setBuildingsName(h.getUnit().getBuildings().getName());
+	    			h.setUnitName(h.getUnit().getName());
+	    			h.setNumFloorStr(h.getNumFloor());
+	    			h.setBuildAreaStr(h.getBuildArea()+"");
+	    			h.setUseAreaStr(h.getUseArea()+"");
+	    		}
+	    		
+	    		
+	    		
+	    		new ExportExcel("房屋数据", House.class).setDataList(ls).write(response, fileName).dispose();
+	    		return null;
+			} catch (Exception e) {
+				addMessage(redirectAttributes, "导出用户失败！失败信息："+e.getMessage());
+			}
+			return "redirect:"+Global.getAdminPath()+"/pms/house/?repage";
+	    }
+	    
+	    
+	    private void getHouseParam(House house, HttpServletRequest request){
+	    	String proCompanyId = request.getParameter("unit.buildings.community.proCompany.id");
+    		String communityId = request.getParameter("unit.buildings.community.id");
+    		String buildingsId = request.getParameter("unit.buildings.id");
+    		String unitId = request.getParameter("unit.id");
+
+    		User owner = new User();
+    		Office company = new Office();
+    		Office proCompany = new Office();
+
+    		Unit unit = new Unit();
+    	    Buildings buildings = new Buildings();
+    	    Community community = new Community();
+    	    
+    		owner.setCompany(company);
+    		unit.setBuildings(buildings);
+    		buildings.setCommunity(community);
+    		community.setProCompany(proCompany);
+    		
+    		if (StringUtils.isNotBlank(proCompanyId)){
+    			proCompany.setId(proCompanyId);
+    		}
+    		if (StringUtils.isNotBlank(communityId)){
+    			community.setId(communityId);
+    		}
+    		if (StringUtils.isNotBlank(buildingsId)){
+    			buildings.setId(buildingsId);
+    		}
+    		if (StringUtils.isNotBlank(unitId)){
+    			unit.setId(unitId);
+    		} 		
+    		
+    	    house.setOwner(owner);
+    	    house.setUnit(unit);
+
+	    }
+
 		
 	    @RequestMapping(value = "import/template")
 	    public String importFileTemplate(HttpServletResponse response, RedirectAttributes redirectAttributes) {
@@ -633,4 +695,8 @@ public class HouseController extends BaseController {
 			}
 			return "redirect:"+Global.getAdminPath()+"/pms/house/?repage";
 	    }
+	    
+	    
+	    
+
 }

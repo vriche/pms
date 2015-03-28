@@ -72,11 +72,12 @@
 		</form:select>
 	
 		<label>小区:</label>
-		<form:select id="communityId" name="communityId" path="community.id"  class="input-small">
+		<form:select id="communityId" name="communityId" path="community.id"  style="width:140px"  class="input-small">
 					<form:options items="${communityList}" itemLabel="name" itemValue="id" htmlEscape="false" />
 		</form:select>
 
 		<label>名称 ：</label><form:input path="name" htmlEscape="false" maxlength="50" class="input-small"/>
+		
 		&nbsp;<input id="btnSubmit" class="btn btn-primary" type="submit" value="查询"/>
 		&nbsp;<input id="btnExport" class="btn btn-primary" type="button" value="导出"/>
 		&nbsp;<input id="btnImport" class="btn btn-primary" type="button" value="导入"/>
@@ -94,6 +95,7 @@
 		<th>竣工日期 </th>
 		<th>预售许可证 </th>
 		<th>建筑许可证</th>
+		<th>序号</th>
 		<th>备注</th>
 		<shiro:hasPermission name="pms:buildings:edit"></shiro:hasPermission>
 		<th>操作</th></tr></thead>
@@ -110,6 +112,7 @@
 				<td>${buildings.completionDate}</td>
 				<td>${buildings.presalePermit}</td>
 				<td>${buildings.buildPermit}</td>
+				<td>${buildings.sort}</td>
 				<td>${buildings.remarks}</td>
 
 				<td>

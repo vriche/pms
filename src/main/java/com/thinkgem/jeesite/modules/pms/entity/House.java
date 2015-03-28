@@ -35,7 +35,9 @@ import com.google.common.collect.Lists;
 import com.thinkgem.jeesite.common.persistence.IdEntity;
 import com.thinkgem.jeesite.common.utils.excel.annotation.ExcelField;
 import com.thinkgem.jeesite.common.utils.excel.fieldtype.HouseType;
+import com.thinkgem.jeesite.common.utils.excel.fieldtype.RoleListType;
 import com.thinkgem.jeesite.common.utils.excel.fieldtype.UserType;
+import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 
 /**
@@ -52,11 +54,14 @@ public class House extends IdEntity<House> {
 
 	private static final long serialVersionUID = 1L;
 	private String name; // name '房屋名称'
-	private String code; // code 编号
+	private String code; // code 房号
 	private Unit unit; // unit_id 楼宇
-	private Integer numFloor; // num_floor '第几层'
+	private String numFloor; // num_floor '第几层'
 	private BigDecimal buildArea;  //建筑面积 building_area
 	private BigDecimal useArea; //使用面积 use_area
+	private BigDecimal extArea; //扩建面积 ext_area
+
+
 	private User owner = new User(); // 业主
 	private String apartment; // apartment 户型  二室一厅 三室一厅 二室二厅
 	private String face; // face  朝向 坐西朝东 坐北朝南 坐南朝北
@@ -64,12 +69,19 @@ public class House extends IdEntity<House> {
 	private String isSell; //  is_sell 已售
 	private String isRent; //  is_rent 已租
 	private Integer sort; // '排序（升序）',
-	
 	private String fullName; // name '房屋全名称'
-	
-	
+//	private String fullNameNoUser; // name '房屋全名称'
+
 //	private String proCompanyName; // name '单位'
 	
+//	public String getFullNameNoUser() {
+//		return fullNameNoUser;
+//	}
+//
+//	public void setFullNameNoUser(String fullNameNoUser) {
+//		this.fullNameNoUser = fullNameNoUser;
+//	}
+
 	private String loginName; // name '房屋全名称'
 	private String communityName; // name '房屋全名称'
 	private String buildingsName; // name '房屋全名称'
@@ -82,13 +94,35 @@ public class House extends IdEntity<House> {
 	private List<Device> deviceList = Lists.newArrayList(); // 拥有设备
 	private List<PayemtDetail> payemtDetail = Lists.newArrayList(); // 拥有设备
 	private List<PaymentPre> paymentPreList = Lists.newArrayList(); // 拥有设备
+	private Office company;	// 归属公司
 	
 	
-	
-	
-	
+	@Transient
+//	@ExcelField(title="单位", type=1, align=1,value="owner.company.name")
+	public Office getCompany() {
+		return company;
+	}
 
-
+	public void setCompanyName(Office company) {
+		this.company = company;
+	}
+	
+//	private String companyName;	// 归属公司
+//	
+//	
+//	@NotFound(action = NotFoundAction.IGNORE)
+//	@ExcelField(title="单位", type=1, align=1)
+//	public String getCompanyName() {
+//		Office company = owner.getCompany();
+//		if(owner != null){
+//			companyName = company.getName();
+//		}
+//		return companyName;
+//	}
+//
+//	public void setCompanyName(String companyName) {
+//		this.companyName = companyName;
+//	}
 
 	String houseFees ="";
 
@@ -174,6 +208,7 @@ public class House extends IdEntity<House> {
 	@ManyToOne
 	@JoinColumn(name="user_id")
 	@NotFound(action = NotFoundAction.IGNORE)
+//	@ExcelField(title="业主", type=1, align=2, sort=10,value="owner.name")
 	public User getOwner() {
 		return owner;
 	}
@@ -183,7 +218,7 @@ public class House extends IdEntity<House> {
 	}
 	
 	@Transient
-	@ExcelField(title="登录名", type=2,align=2, sort=2)
+	@ExcelField(title="住户编码",align=2, sort=1)
 	public String getLoginName() {
 		return loginName;
 	}
@@ -201,27 +236,31 @@ public class House extends IdEntity<House> {
 //		this.proCompanyName = proCompanyName;
 //	}
 	
+
+
+
+	
 	@Transient
-	@ExcelField(title="小区", type=2, align=2, sort=2)
+	@ExcelField(title="小区", align=2, sort=2)
 	public String getCommunityName() {
 		return communityName;
 	}
 	
 	@Transient
-	@ExcelField(title="楼号", type=2, align=2, sort=3)
+	@ExcelField(title="楼号", align=2, sort=3)
 	public String getBuildingsName() {
 		return buildingsName;
 	}
 	
 
 	@Transient
-	@ExcelField(title="单元", type=2, align=2, sort=4)
+	@ExcelField(title="单元", align=2, sort=4)
 	public String getUnitName() {
 		return unitName;
 	}
 	
 	@Transient
-	@ExcelField(title="楼层",  type=2, align=2, sort=5)
+	@ExcelField(title="楼层", align=2, sort=5)
 	public String getNumFloorStr() {
 		return numFloorStr;
 	}
@@ -232,12 +271,12 @@ public class House extends IdEntity<House> {
 
 	
 	
-	public Integer getNumFloor() {
+	public String getNumFloor() {
 		return numFloor;
 	}
 	
 	@Length(min = 1, max = 100)
-	@ExcelField(title="门牌号",  type=2, align=2, sort=6)
+	@ExcelField(title="门牌号", align=2, sort=6)
 	public String getName() {
 		return name;
 	}
@@ -246,12 +285,12 @@ public class House extends IdEntity<House> {
 		this.name = name;
 	}	
 
-	public void setNumFloor(Integer numFloor) {
+	public void setNumFloor(String numFloor) {
 		this.numFloor = numFloor;
 	}
 	
 	@Transient
-	@ExcelField(title="建筑面积",  type=2, align=2, sort=7)
+	@ExcelField(title="建筑面积",   align=2, sort=7)
 	public String getBuildAreaStr() {
 		return buildAreaStr;
 	}
@@ -260,7 +299,7 @@ public class House extends IdEntity<House> {
 		this.buildAreaStr = buildAreaStr;
 	}
 	@Transient
-	@ExcelField(title="使用面积",  type=2, align=2, sort=8)
+	@ExcelField(title="使用面积",  align=2, sort=8)
 	public String getUseAreaStr() {
 		return useAreaStr;
 	}
@@ -269,7 +308,8 @@ public class House extends IdEntity<House> {
 		this.useAreaStr = useAreaStr;
 	}
 	
-
+//	@Transient
+//	@ExcelField(title="建筑面积", type=1,align=2, sort=2)
 	public BigDecimal getBuildArea() {
 		return buildArea;
 	}
@@ -278,6 +318,8 @@ public class House extends IdEntity<House> {
 		this.buildArea = buildArea;
 	}
 
+//	@Transient
+//	@ExcelField(title="使用面积",  type=1, align=2, sort=3)
 	public BigDecimal getUseArea() {
 		return useArea;
 	}
@@ -286,7 +328,14 @@ public class House extends IdEntity<House> {
 		this.useArea = useArea;
 	}
 
+//	@ExcelField(title="扩建面积",  type=1, align=2, sort=9)
+	public BigDecimal getExtArea() {
+		return extArea;
+	}
 
+	public void setExtArea(BigDecimal extArea) {
+		this.extArea = extArea;
+	}
 
 	@Length(min = 0, max = 50)
 	public String getCode() {
@@ -331,6 +380,7 @@ public class House extends IdEntity<House> {
 		this.face = face;
 	}
 
+//	@ExcelField(title="功能",  type=1, align=2, sort=3)
 	public String getFunct() {
 		return funct;
 	}
@@ -394,18 +444,26 @@ public class House extends IdEntity<House> {
 	
 	@Transient
 	@JsonIgnore
+//	@ExcelField(title="房屋", type=1, align=1, sort=1)
 	public String getFullName() {
 		String communityName ="";
 		String buildingsName ="";
 		String unitName ="";
+		String fullName = "";
 		if(unit != null){
 			 communityName = unit.getBuildings().getCommunity().getName();
 			 buildingsName = unit.getBuildings().getName();
 			 unitName = unit.getName(); 
 		}
 
-		String houseName = getName();
-		String fullName = communityName + buildingsName+unitName + houseName;
+		String houseName = name;
+		String numFloor = getNumFloor();
+		if(numFloor == null){
+			fullName = communityName + buildingsName+ unitName +houseName;
+		}else{
+			fullName = communityName + buildingsName+ unitName + numFloor+"层"+houseName;
+		}
+		 
 		return fullName;
 	}
 

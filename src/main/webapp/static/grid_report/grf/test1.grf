@@ -1,0 +1,98 @@
+﻿Object Report
+	Version='6.0.0.6'
+	Object Font
+		Name='宋体'
+		Size=105000,0
+		Weight=400
+		Charset=134
+	End
+	Object Printer
+	End
+	Object DetailGrid
+		Object Recordset
+			Items Field
+				Item
+					Name='Field1'
+				End
+				Item
+					Name='Field2'
+				End
+				Item
+					Name='Field3'
+				End
+			End
+		End
+		Items Column
+			Item
+				Name='Column1'
+				Width=3.38667
+			End
+			Item
+				Name='Column2'
+				Width=2.59292
+			End
+			Item
+				Name='Column3'
+				Width=3.38667
+			End
+		End
+		Object ColumnContent
+			Height=0.635
+			Items ColumnContentCell
+				Item
+					Column='Column1'
+					DataField='Field1'
+				End
+				Item
+					Column='Column2'
+					DataField='Field2'
+				End
+				Item
+					Column='Column3'
+					DataField='Field3'
+				End
+			End
+		End
+		Object ColumnTitle
+			Height=0.635
+			Items ColumnTitleCell
+				Item
+					GroupTitle=F
+					Column='Column1'
+					TextAlign=MiddleCenter
+					Text='Column1'
+				End
+				Item
+					GroupTitle=F
+					Column='Column2'
+					TextAlign=MiddleCenter
+					Text='Column2'
+				End
+				Item
+					GroupTitle=F
+					Column='Column3'
+					TextAlign=MiddleCenter
+					Text='Column3'
+				End
+			End
+		End
+	End
+	Object PageHeader
+		Height=1.32292
+	End
+	Object PageFooter
+		Height=1.32292
+	End
+	Items ReportHeader
+		Item
+			Name='ReportHeader1'
+			Height=1.32292
+		End
+	End
+	Items ReportFooter
+		Item
+			Name='ReportFooter1'
+			Height=1.32292
+		End
+	End
+End

@@ -69,6 +69,9 @@ public class Page<T> {
 	 * @param defaultPageSize 默认分页大小，如果传递 -1 则为不分页，返回所有数据
 	 */
 	public Page(HttpServletRequest request, HttpServletResponse response, int defaultPageSize){
+		
+//		 System.out.println("importFile>>>>>>>>>>>>>>>888888>999999>>>>>>>>>>>>>>>>defaultPageSize> 0000000000 >>>>>>"+defaultPageSize);
+		 
 		// 设置页码参数（传递repage参数，来记住页码）
 		String no = request.getParameter("pageNo");
 		if (StringUtils.isNumeric(no)){
@@ -82,17 +85,28 @@ public class Page<T> {
 		}
 		// 设置页面大小参数（传递repage参数，来记住页码大小）
 		String size = request.getParameter("pageSize");
-		if (StringUtils.isNumeric(size)){
-			CookieUtils.setCookie(response, "pageSize", size);
-			this.setPageSize(Integer.parseInt(size));
-		}else if (request.getParameter("repage")!=null){
-			no = CookieUtils.getCookie(request, "pageSize");
-			if (StringUtils.isNumeric(size)){
-				this.setPageSize(Integer.parseInt(size));
-			}
-		}else if (defaultPageSize != -2){
+		
+		if(defaultPageSize == -1){
 			this.pageSize = defaultPageSize;
+		}else{
+			if (StringUtils.isNumeric(size)){
+				CookieUtils.setCookie(response, "pageSize", size);
+				this.setPageSize(Integer.parseInt(size));
+				
+			}else if (request.getParameter("repage")!=null){
+				no = CookieUtils.getCookie(request, "pageSize");
+				if (StringUtils.isNumeric(size)){
+					this.setPageSize(Integer.parseInt(size));
+				}
+			}else if (defaultPageSize != -2){
+				this.pageSize = defaultPageSize;
+			}
+
 		}
+
+
+		
+		
 		// 设置排序参数
 		String orderBy = request.getParameter("orderBy");
 		if (StringUtils.isNotBlank(orderBy)){

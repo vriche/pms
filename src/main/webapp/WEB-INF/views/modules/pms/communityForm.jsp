@@ -124,7 +124,12 @@
 		</div>		
 
 
-		
+		<div class="control-group">
+		<label class="control-label">顺序:</label>
+		<div class="controls">
+			<form:input path="sort" htmlEscape="false"   class="text medium;"/>
+		</div>
+		</div>		
 
 
 		<div class="form-actions">

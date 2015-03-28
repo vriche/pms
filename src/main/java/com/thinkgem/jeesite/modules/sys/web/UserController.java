@@ -69,6 +69,9 @@ public class UserController extends BaseController {
 	public String list(User user, HttpServletRequest request, HttpServletResponse response, Model model) {
         Page<User> page = systemService.findUser(new Page<User>(request, response), user); 
         model.addAttribute("page", page);
+        
+//        List<Office> proCompanyList = UserUtils.findProCompanyList();
+//        model.addAttribute("proCompanyList", proCompanyList);
 		return "modules/sys/userList";
 	}
 

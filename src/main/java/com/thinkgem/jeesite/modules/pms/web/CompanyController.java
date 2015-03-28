@@ -5,6 +5,7 @@
  */
 package com.thinkgem.jeesite.modules.pms.web;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.authz.annotation.RequiresUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -36,12 +36,11 @@ import com.thinkgem.jeesite.common.utils.StringUtils;
 import com.thinkgem.jeesite.common.utils.excel.ExportExcel;
 import com.thinkgem.jeesite.common.utils.excel.ImportExcel;
 import com.thinkgem.jeesite.common.web.BaseController;
+import com.thinkgem.jeesite.modules.pms.service.CompanyService;
 import com.thinkgem.jeesite.modules.sys.entity.Office;
 import com.thinkgem.jeesite.modules.sys.entity.User;
 //import com.thinkgem.jeesite.modules.sys.service.SystemService;
 import com.thinkgem.jeesite.modules.sys.utils.UserUtils;
-import com.thinkgem.jeesite.modules.pms.entity.Community;
-import com.thinkgem.jeesite.modules.pms.service.CompanyService;
 
 /**
  * 机构Controller
@@ -126,9 +125,7 @@ public class CompanyController extends BaseController {
 //	@RequiresPermissions("pms:office:edit")
     @RequestMapping(value = "import", method=RequestMethod.POST)
     public String importFile(MultipartFile file, RedirectAttributes redirectAttributes) {
-		
-		
-		 
+
 		if(Global.isDemoMode()){
 			addMessage(redirectAttributes, "演示模式，不允许操作！");
 			return "redirect:"+Global.getAdminPath()+"/pms/office/?repage";
@@ -140,28 +137,53 @@ public class CompanyController extends BaseController {
 			ImportExcel ei = new ImportExcel(file, 1, 0);
 			List<Office> list = ei.getDataList(Office.class);
 			
-			System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>222222>>"+list.size());
-			 
+			List<Office> listALL = new ArrayList<Office>();
+			List<Office> listGradeOne = new ArrayList<Office>();
+			List<Office> listGradeTwo = new ArrayList<Office>();
+			
 			for (Office office : list){
+				if("1".equals(office.getGrade())){
+					listGradeOne.add(office);
+				}
+				if("2".equals(office.getGrade())){
+					listGradeTwo.add(office);
+				}
+			}
+			
+			listALL.addAll(listGradeOne);
+			listALL.addAll(listGradeTwo);
+			 
+			for (Office office : listALL){
 				try{
-					 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3"+office.getName());
-					 List<Office> ls =  companyService.findCompany(office); 
-					 
-					 System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>4>>>>>>"+ls.size());
-				
-					if (ls.size() == 0){
-						office.setCreateDate(new Date());
-						Office parent = new Office();parent.setId("2");
-						office.setParent(parent);
-						office.setSort("2");
-						office.setIsCharge("1");
-						BeanValidators.validateWithException(validator, office);
-						companyService.save(office);
-						successNum++;
+					 Office companyParam = new Office();
+					 companyParam.setCode(office.getCode());
+					 List<Office> ls =  companyService.findCompany(companyParam); 
+
+					String parentCode = office.getParentCode();
+					companyParam.setCode(parentCode);
+					List<Office> ls2 =  companyService.findCompany(companyParam); 
+					Office parent = new Office();
+					if(ls2.size() > 0){
+						parent = ls2.get(0);
 					}else{
-						failureMsg.append("<br/>公司名 "+office.getName()+" 已存在; ");
-						failureNum++;
+						parent.setId("0");
 					}
+					office.setParent(parent);
+					
+					if (ls.size() == 0){
+//						System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ls2.size()>>>>>>>>>>>>>"+ls2.size());
+						office.setCreateDate(new Date());
+						office.setIsCharge("1");
+					
+					}else{
+						office.setId(ls.get(0).getId());
+//						failureMsg.append("<br/>公司名 "+office.getName()+" 已存在; ");
+//						failureNum++;
+					}
+					successNum++;
+					BeanValidators.validateWithException(validator, office);
+					companyService.save(office);
+
 				}catch(ConstraintViolationException ex){
 					failureMsg.append("<br/>公司名 "+office.getName()+" 导入失败：");
 					List<String> messageList = BeanValidators.extractPropertyAndMessageAsList(ex, ": ");
@@ -170,13 +192,16 @@ public class CompanyController extends BaseController {
 						failureNum++;
 					}
 				}catch (Exception ex) {
-					failureMsg.append("<br/>公司名 "+office.getName()+" 导入失败："+ex.getMessage());
+//					failureMsg.append("<br/>公司名 "+office.getName()+" 导入失败："+ex.getMessage());
 				}
 			}
 			if (failureNum>0){
 				failureMsg.insert(0, "，失败 "+failureNum+" 条公司名，导入信息如下：");
 			}
-			addMessage(redirectAttributes, "已成功导入 "+successNum+" 条公司名"+failureMsg);
+			if (successNum>0){
+				addMessage(redirectAttributes, "已成功导入 "+successNum+" 条公司名"+failureMsg);
+			}
+			
 		} catch (Exception e) {
 			addMessage(redirectAttributes, "导入公司名失败！失败信息："+e.getMessage());
 		}
@@ -293,7 +318,10 @@ public class CompanyController extends BaseController {
 	    	if("paymentDetail".endsWith(model)){
 	   		 	proCompanyId = request.getParameter("device.house.unit.buildings.community.proCompany.id"); 
 	    	}
-	    	
+	
+	    	if("deviceDetail".endsWith(model)){
+	   		 	proCompanyId = request.getParameter("device.house.unit.buildings.community.proCompany.id"); 
+	    	}
 	    
 	    	if("device".endsWith(model)){
 	   		 	proCompanyId = request.getParameter("fees.company.id"); 

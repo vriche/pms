@@ -35,19 +35,33 @@
 <body>
 	<ul class="nav nav-tabs">
 		<li><a href="${ctx}/pms/user/">用户列表</a></li>
-		<li class="active"><a href="${ctx}/pms/user/form?id=${user.id}">用户<shiro:hasPermission name="sys:user:edit">${not empty user.id?'修改':'添加'}</shiro:hasPermission><shiro:lacksPermission name="sys:user:edit">查看</shiro:lacksPermission></a></li>
+		<li class="active"><a href="${ctx}/pms/user/form?id=${user.id}">用户<shiro:hasPermission name="pms:user:edit">${not empty user.id?'修改':'添加'}</shiro:hasPermission><shiro:lacksPermission name="sys:user:edit">查看</shiro:lacksPermission></a></li>
 
-	   <c:if test="${not empty user.id}">
-	    <li><a href="${ctx}/pms/fees/assignNormal/?userId=${user.id}">费用分布</a></li>
-	    <li><a href="${ctx}/pms/fees/assignNormal/?userId=${user.id}">应缴费用</a></li>
-	   </c:if>  	
+	   <!-- c:if test="${not empty user.id}" -->
+	    <!-- li><a href="${ctx}/pms/fees/assignNormal/?userId=${user.id}">费用分布</a></li -->
+	    <!-- li><a href="${ctx}/pms/fees/assignNormal/?userId=${user.id}">应缴费用</a></li -->
+	   <!--/c:if -->  	
 	   
 	 	
 		
 	</ul><br/>
 	<form:form id="inputForm" modelAttribute="user" action="${ctx}/pms/user/save" method="post" class="form-horizontal">
 		<form:hidden path="id"/>
+
+		
+		<input type="hidden"  id="deviceId"  name="deviceId"/>
+		
 		<tags:message content="${message}"/>
+		
+		
+		<div class="control-group">
+      <label class="control-label">物业单位:</label>
+      <div class="controls">
+                <tags:treeselect id="office" name="office.id" value="${user.office.id}" labelName="office.name" labelValue="${user.office.name}"
+          title="部门" url="/sys/office/treeData?type=2" cssClass="required"/>
+      </div>
+    </div>
+    
 		<div class="control-group">
 			<label class="control-label">归属公司:</label>
 			<div class="controls">
@@ -55,20 +69,21 @@
 					title="公司" url="/sys/office/treeData?type=1" cssClass="required"/>
 			</div>
 		</div>
+		
 		<div class="control-group">
-			<label class="control-label">归属部门:</label>
-			<div class="controls">
-                <tags:treeselect id="office" name="office.id" value="${user.office.id}" labelName="office.name" labelValue="${user.office.name}"
-					title="部门" url="/sys/office/treeData?type=2" cssClass="required"/>
-			</div>
-		</div>
-		<div class="control-group">
-			<label class="control-label">登录名:</label>
+			<label class="control-label">住户编码:</label>
 			<div class="controls">
 				<input id="oldLoginName" name="oldLoginName" type="hidden" value="${user.loginName}">
 				<form:input path="loginName" htmlEscape="false" maxlength="50" class="required userName"/>
 			</div>
 		</div>
+		
+		  <div class="control-group">
+      <label class="control-label">查询编码:</label>
+      <div class="controls">
+        <form:input path="no" htmlEscape="false" maxlength="50" class="required"/>
+      </div>
+    </div>
 
 		<div class="control-group">
 			<label class="control-label">姓名:</label>
@@ -142,7 +157,7 @@
     <div class="control-group">
                 <label class="control-label">选择房产：</label>
                 <div class="controls">
-                    <tags:treeselect id="house" name="house" value="" labelName="${name}" labelValue="${id}" 
+                    <tags:treeselect id="house" name="house" value="" labelName="${name}" labelValue="${id}"  proCompany="proCompanyId"  deviceId="deviceId" 
                       title="房间" url="/pms/buildings/treeData?Level=4"  nodesLevel="4" nameLevel="4"  notAllowSelectParent="true" cssClass="" allowClear="true"/>
                 </div>
     </div>  		
@@ -154,11 +169,17 @@
               <thead><tr>
               <th>编号</th>
               <th>名称</th>
+              <!-- th>费用项目</th -->
+              <!-- th>操作</th -->
               <tbody>
               <c:forEach items="${houseList}" var="house">
                 <tr>
                   <td>${house.code}</td>
                   <td><a href="${ctx}/pms/house/form?id=${house.id}">${house.fullName}</a></td>
+                  
+                  
+                   <!-- td><table><tr><c:forEach items="${house.deviceList}" var="fees"><td>${fees.name}</td> </c:forEach></tr> </table> </td -->
+   
                 </tr>
               </c:forEach>
               </tbody>
@@ -192,7 +213,7 @@
 			</div>
 		</c:if>
 		<div class="form-actions">
-			<shiro:hasPermission name="sys:user:edit"><input id="btnSubmit" class="btn btn-primary" type="submit" value="保 存"/>&nbsp;</shiro:hasPermission>
+			<shiro:hasPermission name="pms:user:edit"><input id="btnSubmit" class="btn btn-primary" type="submit" value="保 存"/>&nbsp;</shiro:hasPermission>
 			<input id="btnCancel" class="btn" type="button" value="返 回" onclick="history.go(-1)"/>
 		</div>
 	</form:form>

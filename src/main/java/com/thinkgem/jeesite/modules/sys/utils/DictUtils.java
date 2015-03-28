@@ -16,6 +16,7 @@ import com.thinkgem.jeesite.common.utils.CacheUtils;
 import com.thinkgem.jeesite.common.utils.SpringContextHolder;
 import com.thinkgem.jeesite.modules.sys.dao.DictDao;
 import com.thinkgem.jeesite.modules.sys.entity.Dict;
+import com.thinkgem.jeesite.modules.sys.entity.User;
 
 /**
  * 字典工具类
@@ -66,12 +67,35 @@ public class DictUtils {
 			CacheUtils.put(CACHE_DICT_MAP, dictMap);
 		}
 		List<Dict> dictList = dictMap.get(type);
+		
+		if(type.equals("sys_office_sort")){
+			User currentUser = UserUtils.getUser();
+			if (!currentUser.isAdmin() ){
+//				dictList.remove(1);
+			}
+		} 
+		
 		if (dictList == null){
 			dictList = Lists.newArrayList();
 		}
 		return dictList;
 	}
-	
+	public static List<Dict> getDictList2(String type){
+		@SuppressWarnings("unchecked")
+		List<Dict> dictList = dictDao.findAllListByType(type);
+		
+		if(type.equals("sys_office_sort")){
+			User currentUser = UserUtils.getUser();
+			if (!currentUser.isAdmin() ){
+				dictList.remove(0);
+			}
+		} 
+		
+		if (dictList == null){
+			dictList = Lists.newArrayList();
+		}
+		return dictList;
+	}
 	public static String  getLable(String type,String id){
 		@SuppressWarnings("unchecked")
 		String name = "";
